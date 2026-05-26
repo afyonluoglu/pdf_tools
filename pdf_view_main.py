@@ -26,7 +26,8 @@ from pdf_view_file_ops import FileOperationsMixin
 from pdf_view_text_extraction import TextExtractionMixin
 
 # Annotation manager importları
-from annotation_manager_fixed import FixedAnnotationManager, FixedHighlightTool
+from pdf_view_ann_core import AnnotationManager
+from pdf_view_ann_highlight import HighlightTool
 
 # Global exception handler'ı ayarla
 setup_global_exception_handler()
@@ -81,21 +82,20 @@ class PDFViewer(
         settings_file="pdf_viewer_settings.json"
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.settings_file = os.path.join(current_dir, settings_file)
-        print(f"Ayarlar dosyası yolu: {self.settings_file}")
+        # print(f"Ayarlar dosyası yolu: {self.settings_file}")
 
         # self.settings_file = "pdf_viewer_settings.json"
         self.load_settings()
         
-        # Fixed annotation manager - ScrollableFrame bug'ını çözen versiyon
-        self.annotation_manager = FixedAnnotationManager(self)
-        # HighlightTool'u da fixed annotation manager ile uyumlu hale getir
-        self.highlight_tool = FixedHighlightTool(self)
+        # Annotation manager ve vurgulama aracını başlat
+        self.annotation_manager = AnnotationManager(self)
+        self.highlight_tool = HighlightTool(self)
         
         # UI ve keybinding'leri kur (mixin'lerden)
         self.setup_ui()
         self.setup_keybindings()
         
-        print("DEBUG: PDFViewer başlatıldı")
+        # print("DEBUG: PDFViewer başlatıldı")
     
     def run(self):
         """Uygulamayı çalıştır"""
@@ -207,7 +207,7 @@ class AdvancedAnnotationWindow:
 def main():
     """Ana program"""
     try:
-        print("DEBUG: PDF Viewer başlatılıyor...")
+        print("PDF Viewer başlatılıyor...")
         app = PDFViewer()
         app.run()
     except Exception as e:

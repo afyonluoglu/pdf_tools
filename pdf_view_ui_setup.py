@@ -238,11 +238,11 @@ class UISetupMixin:
         help_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pdf_viewer_help.html")
         if os.path.exists(help_file):
             webbrowser.open(f"file:///{help_file.replace(os.sep, '/')}")
-            print(f"DEBUG: Yardım dosyası açıldı: {help_file}")
+            # print(f"DEBUG: Yardım dosyası açıldı: {help_file}")
         else:
             from tkinter import messagebox
             messagebox.showwarning("Yardım", "Yardım dosyası bulunamadı: pdf_viewer_help.html")
-            print(f"DEBUG: Yardım dosyası bulunamadı: {help_file}")
+            # print(f"DEBUG: Yardım dosyası bulunamadı: {help_file}")
     
     def _configure_thumbnail_scroll_region(self, event):
         """Thumbnail canvas scroll region'ını güncelle"""

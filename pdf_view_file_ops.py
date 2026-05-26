@@ -127,7 +127,7 @@ class FileOperationsMixin:
                     ]
                     with open(ann_path, 'w', encoding='utf-8') as f:
                         json.dump(anns_to_save, f, indent=2, ensure_ascii=False)
-                    print(f"DEBUG: {len(anns_to_save)} annotation JSON sidecar'a kaydedildi: {os.path.basename(ann_path)}")
+                    # print(f"DEBUG: {len(anns_to_save)} annotation JSON sidecar'a kaydedildi: {os.path.basename(ann_path)}")
                 
                 messagebox.showinfo("Başarılı", f"PDF başarıyla kaydedildi:\n{file_path}")
                 
@@ -161,7 +161,7 @@ class FileOperationsMixin:
     def on_closing(self):
         """Program kapanırken"""
         try:
-            print("Program kapatılıyor...")
+            # print("Program kapatılıyor...")
             
             # Ayarları kaydet
             self.save_settings()
@@ -192,7 +192,7 @@ class FileOperationsMixin:
             self.root.quit()
             self.root.destroy()
             
-            print("Program başarıyla kapatıldı.")
+            # print("Program başarıyla kapatıldı.")
             
         except Exception as e:
             print(f"Program kapatma hatası: {e}")
@@ -223,9 +223,10 @@ class FileOperationsMixin:
                     ann.pop('canvas_id', None)  # Eski canvas ID'leri temizle
                     self.annotation_manager.add_annotation(ann)
                 
-                print(f"DEBUG: {len(annotations)} annotation JSON'dan yüklendi: {os.path.basename(ann_path)}")
+                # print(f"DEBUG: {len(annotations)} annotation JSON'dan yüklendi: {os.path.basename(ann_path)}")
             else:
-                print(f"DEBUG: Sidecar bulunamadı, annotation yok: {os.path.basename(pdf_path)}")
+                # print(f"DEBUG: Sidecar bulunamadı, annotation yok: {os.path.basename(pdf_path)}")
+                pass
                 
         except Exception as e:
             print(f"Annotation yükleme hatası: {e}")

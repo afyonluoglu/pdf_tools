@@ -166,7 +166,7 @@ class TextExtractionMixin:
                         # extracted_text.append(f"{'='*60}\n")
                         extracted_text.append(text)
                     
-                    print(f"DEBUG: Sayfa {page_num + 1}: metin çıkarıldı ({len(text)} karakter)")
+                    # print(f"DEBUG: Sayfa {page_num + 1}: metin çıkarıldı ({len(text)} karakter)")
                 
                 progress_bar.set(1.0)
                 progress_label.configure(text="Tamamlandı!")
@@ -176,7 +176,7 @@ class TextExtractionMixin:
                 self.root.after(300, lambda: self.open_text_editor("\n".join(extracted_text), start_page, end_page))
                 self.root.after(500, progress_window.destroy)
                 
-                print(f"DEBUG: Toplam {total_to_extract} sayfa metin çıkarma işlemi tamamlandı")
+                # print(f"DEBUG: Toplam {total_to_extract} sayfa metin çıkarma işlemi tamamlandı")
                 
             except Exception as e:
                 print(f"DEBUG: Metin çıkarma hatası: {e}")

@@ -136,7 +136,7 @@ class QuickAccessPanel:
 
         self.refresh()
         self.window.focus()
-        print("DEBUG: Hızlı Erişim paneli açıldı")
+        # print("DEBUG: Hızlı Erişim paneli açıldı")
 
     # ── Filtre yardımcısı ─────────────────────────────────────────────────
 
@@ -195,7 +195,7 @@ class QuickAccessPanel:
                     scrollregion=self.list_canvas.bbox("all")
                 )
             )
-            print(f"DEBUG: Hızlı Erişim yenilendi — {len(items)} annotation")
+            # print(f"DEBUG: Hızlı Erişim yenilendi — {len(items)} annotation")
         except Exception as e:
             print(f"DEBUG: QuickAccess refresh hatası: {e}")
 
@@ -278,7 +278,7 @@ class QuickAccessPanel:
             if hasattr(self.pdf_viewer, 'update_ui'):
                 self.pdf_viewer.update_ui()
             self.status_label.configure(text=f"✓ Sayfa {page + 1}'e gidildi")
-            print(f"DEBUG: QuickAccess Git — Sayfa {page + 1}")
+            # print(f"DEBUG: QuickAccess Git — Sayfa {page + 1}")
         except Exception as e:
             print(f"DEBUG: QuickAccess goto hatası: {e}")
 
@@ -297,7 +297,7 @@ class QuickAccessPanel:
             parent=self.window
         )
         if not confirmed:
-            print(f"DEBUG: Silme iptal edildi — {label} Sayfa {page_no}")
+            # print(f"DEBUG: Silme iptal edildi — {label} Sayfa {page_no}")
             return
 
         try:
@@ -321,7 +321,7 @@ class QuickAccessPanel:
 
                 self.refresh()
                 self.status_label.configure(text=f"✓ {label} (Sayfa {page_no}) silindi")
-                print(f"DEBUG: QuickAccess — {label} Sayfa {page_no} silindi")
+                # print(f"DEBUG: QuickAccess — {label} Sayfa {page_no} silindi")
         except Exception as e:
             print(f"DEBUG: QuickAccess delete hatası: {e}")
             messagebox.showerror("Hata", f"Silme sırasında hata:\n{e}", parent=self.window)

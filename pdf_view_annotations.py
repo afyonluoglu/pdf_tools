@@ -101,20 +101,20 @@ class AnnotationMixin:
         if ann_type == 'note':
             text = ann.get('text', '(boş not)')
             messagebox.showinfo(f"📝 Not — Sayfa {page_no}", text, parent=self.root)
-            print(f"DEBUG: Not çift tık gösterildi — idx={idx}, sayfa={page_no}")
+            # print(f"DEBUG: Not çift tık gösterildi — idx={idx}, sayfa={page_no}")
         elif ann_type == 'link':
             url = ann.get('url', '')
             if url:
                 import webbrowser
                 webbrowser.open(url)
-                print(f"DEBUG: Link tarayıcıda açıldı — {url}")
+                # print(f"DEBUG: Link tarayıcıda açıldı — {url}")
             else:
                 messagebox.showinfo("🔗 Link", "URL bulunamadı.", parent=self.root)
         elif ann_type == 'bookmark':
             label = ann.get('text', '')
             msg = f"Sayfa {page_no}" + (f": {label}" if label else "")
             messagebox.showinfo("⭐ İşaret", msg, parent=self.root)
-            print(f"DEBUG: Bookmark çift tık gösterildi — sayfa={page_no}")
+            # print(f"DEBUG: Bookmark çift tık gösterildi — sayfa={page_no}")
                 
     def get_note_content_at_position(self, x, y):
         """Belirtilen pozisyondaki not içeriğini al"""
@@ -252,7 +252,7 @@ class AnnotationMixin:
             self.status_label.configure(
                 text=f"📝 Not eklendi — Sayfa {self.current_page + 1}"
             )
-            print(f"DEBUG: Hızlı not eklendi — Sayfa {self.current_page + 1}: {note[:40]}")
+            # print(f"DEBUG: Hızlı not eklendi — Sayfa {self.current_page + 1}: {note[:40]}")
             dlg.destroy()
 
         ctk.CTkButton(
@@ -278,7 +278,7 @@ class AnnotationMixin:
         self.status_label.configure(
             text=f"⭐ İşaret eklendi — Sayfa {self.current_page + 1}"
         )
-        print(f"DEBUG: Hızlı işaret eklendi — Sayfa {self.current_page + 1}")
+        # print(f"DEBUG: Hızlı işaret eklendi — Sayfa {self.current_page + 1}")
 
     def quick_add_link(self):
         """Hızlı link ekleme — küçük popup diyalog."""
@@ -325,7 +325,7 @@ class AnnotationMixin:
             self.status_label.configure(
                 text=f"🔗 Link eklendi — Sayfa {self.current_page + 1}"
             )
-            print(f"DEBUG: Hızlı link eklendi — Sayfa {self.current_page + 1}: {url}")
+            # print(f"DEBUG: Hızlı link eklendi — Sayfa {self.current_page + 1}: {url}")
             dlg.destroy()
 
         ctk.CTkButton(
@@ -379,7 +379,7 @@ class AnnotationMixin:
             menu.tk_popup(event.x_root, event.y_root)
         finally:
             menu.grab_release()
-        print(f"DEBUG: Bağlam menüsü — idx={idx}, tür={ann_type}")
+        # print(f"DEBUG: Bağlam menüsü — idx={idx}, tür={ann_type}")
 
     def _edit_annotation(self, ann, idx):
         """Not veya link annotation'ını düzenle"""
@@ -405,7 +405,7 @@ class AnnotationMixin:
                 if new_text:
                     self.annotation_manager.annotations[idx]['text'] = new_text
                     self.display_page()
-                    print(f"DEBUG: Not düzenlendi — idx={idx}")
+                    # print(f"DEBUG: Not düzenlendi — idx={idx}")
                 dlg.destroy()
             ctk.CTkButton(btn_row, text="İptal", width=90, fg_color="gray",
                           command=dlg.destroy).pack(side="left", padx=8)
@@ -436,7 +436,7 @@ class AnnotationMixin:
                         new_url = "https://" + new_url
                     self.annotation_manager.annotations[idx]['url'] = new_url
                     self.display_page()
-                    print(f"DEBUG: Link düzenlendi — idx={idx}, url={new_url}")
+                    # print(f"DEBUG: Link düzenlendi — idx={idx}, url={new_url}")
                 dlg.destroy()
             ctk.CTkButton(btn_row, text="İptal", width=90, fg_color="gray",
                           command=dlg.destroy).pack(side="left", padx=8)
@@ -457,7 +457,7 @@ class AnnotationMixin:
             del self.annotation_manager.annotations[idx]
             self.display_page()
             self.status_label.configure(text=f"Annotation silindi.")
-            print(f"DEBUG: Annotation silindi — idx={idx}, tür={ann_type}")
+            # print(f"DEBUG: Annotation silindi — idx={idx}, tür={ann_type}")
         except (IndexError, Exception) as e:
             print(f"DEBUG: Annotation silme hatası — {e}")
 
@@ -467,7 +467,7 @@ class AnnotationMixin:
             from pdf_view_quick_access import QuickAccessPanel
             self._quick_access_panel = QuickAccessPanel(self)
         self._quick_access_panel.open()
-        print("DEBUG: Hızlı Erişim paneli çağrıldı (F2)")
+        # print("DEBUG: Hızlı Erişim paneli çağrıldı (F2)")
 
     def on_canvas_click(self, event):
         """Canvas tıklama olayını işle"""

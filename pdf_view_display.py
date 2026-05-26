@@ -279,7 +279,7 @@ class DisplayMixin:
                                 tags="pdf_annotation"
                             )
                         
-                        print(f"PDF Annotation yüklendi: {annot_type} at ({x1:.1f}, {y1:.1f}, {x2:.1f}, {y2:.1f}) renk: {hex_color}")
+                        # print(f"PDF Annotation yüklendi: {annot_type} at ({x1:.1f}, {y1:.1f}, {x2:.1f}, {y2:.1f}) renk: {hex_color}")
                         
                 except Exception as e:
                     print(f"Annotation işleme hatası: {e}")
@@ -311,7 +311,7 @@ class DisplayMixin:
             if hasattr(self, 'highlight_selections'):
                 self.highlight_selections.clear()
                 
-            print("Önceki annotation'lar temizlendi.")
+            # print("Önceki annotation'lar temizlendi.")
             
         except Exception as e:
             print(f"Önceki annotation'ları temizleme hatası: {e}")

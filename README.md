@@ -121,7 +121,11 @@ PDF Tools/
 ├── pdf_view_text_editor.py   # ProfessionalTextEditor: Metin editörü penceresi
 ├── pdf_view_tts.py           # TTSManager: Microsoft Edge TTS seslendirme
 ├── pdf_view_utils.py         # Yardımcı fonk.: exception handler, pencere merkezleme
-├── annotation_manager_fixed.py # FixedAnnotationManager + FixedHighlightTool
+├── pdf_view_ann_core.py      # AnnotationManager: CRUD, PDF entegrasyonu, içe/dışa aktarım
+├── pdf_view_ann_window.py    # AnnWindowMixin: Pencere, liste, scroll, silme/gitme işlemleri
+├── pdf_view_ann_controls.py  # AnnControlsMixin: Renk/tip kontrolleri, manuel ekleme, canvas
+├── pdf_view_ann_highlight.py # HighlightTool: Fareyle vurgulama aracı + test fonksiyonu
+├── annotation_manager_fixed.py # Geriye dönük uyumluluk shim'i (eski importlar için)
 ├── pdf_viewer_settings.json  # Kullanıcı ayarları (otomatik oluşturulur)
 ├── pdf_viewer_errors.log     # Hata günlüğü (otomatik oluşturulur)
 ├── requirements.txt          # Python bağımlılıkları
@@ -139,6 +143,13 @@ PDFViewer
 ├── SearchMixin         → search_text(), search_next(), show_search_result()
 ├── FileOperationsMixin → open_pdf(), save_pdf(), load/save_settings(), on_closing()
 └── TextExtractionMixin → extract_text_to_file(), show_page_range_dialog(), start_text_extraction()
+
+AnnotationManager (pdf_view_ann_core.py)
+├── AnnWindowMixin      → create_annotation_window(), refresh_annotation_list(), create_annotation_item()
+└── AnnControlsMixin    → setup_color_selection(), add_manual_note/link/bookmark(), canvas gösterimi
+
+HighlightTool (pdf_view_ann_highlight.py)
+└── Fareyle vurgulama: activate(), start/update/finish_highlight(), add_highlight_rect()
 ```
 
 ---

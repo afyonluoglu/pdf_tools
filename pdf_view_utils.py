@@ -17,7 +17,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     
     # Terminale yazdır
     print(f"\n{'='*50}")
-    print(f"HATA YAKALANDI: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"HATA YAKALANDI: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}")
     print(f"{'='*50}")
     print(error_msg)
     print(f"{'='*50}\n")

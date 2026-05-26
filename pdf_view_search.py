@@ -34,7 +34,7 @@ class SearchMixin:
         if self.search_results:
             for i in range(0, len(self.search_results)):
                 self.current_search_index = i
-                print(f"🚩Sonuç {i+1}: Sayfa {self.search_results[i][0] + 1}, Konum: {self.search_results[i][1]}")
+                # print(f"🚩Sonuç {i+1}: Sayfa {self.search_results[i][0] + 1}, Konum: {self.search_results[i][1]}")
 
             self.current_search_index = 0
             self.show_search_result()
@@ -45,7 +45,7 @@ class SearchMixin:
     
     def search_next(self, event=None):
         """Sonraki arama sonucuna git"""
-        print(f"🔎 Toplam sonuç: {len(self.search_results)}, Şu anki indeks: {self.current_search_index}")
+        # print(f"🔎 Toplam sonuç: {len(self.search_results)}, Şu anki indeks: {self.current_search_index}")
         if self.current_search_index < len(self.search_results)-1:
             self.current_search_index += 1
             self.show_search_result()

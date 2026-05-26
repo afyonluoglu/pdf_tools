@@ -48,14 +48,14 @@ class ProfessionalTextEditor:
         # TTS'i başlat
         self.init_tts()
         
-        print(f"DEBUG: Metin editörü açıldı - {len(text)} karakter yüklendi")
+        # print(f"DEBUG: Metin editörü açıldı - {len(text)} karakter yüklendi")
     
     def init_tts(self):
         """TTS manager'ı başlat"""
         try:
             from pdf_view_tts import TTSManager
             self.tts_manager = TTSManager(self.window)
-            print("DEBUG: TTS manager başlatıldı")
+            # print("DEBUG: TTS manager başlatıldı")
         except Exception as e:
             print(f"DEBUG: TTS başlatma hatası: {e}")
             self.tts_manager = None
@@ -378,7 +378,7 @@ class ProfessionalTextEditor:
             self.tts_manager.stop()
             self.tts_status_label.configure(text="⏹️ Durduruldu")
             self.status_label.configure(text="Hazır")
-            print("DEBUG: Seslendirme durduruldu")
+            # print("DEBUG: Seslendirme durduruldu")
     
     def save_as_mp3(self):
         """Seçili metni veya tüm metni MP3 olarak kaydet"""
@@ -432,7 +432,7 @@ class ProfessionalTextEditor:
             self.text_widget.configure(font=("Consolas", new_size))
             self.status_label.configure(text=f"Font boyutu: {new_size}")
             self.update_line_numbers()
-            print(f"DEBUG: Font boyutu değiştirildi: {new_size}")
+            # print(f"DEBUG: Font boyutu değiştirildi: {new_size}")
         except ValueError:
             pass
     
@@ -471,7 +471,7 @@ class ProfessionalTextEditor:
                 self.status_label.configure(text=f"✓ Açıldı: {self.filename}")
                 self.update_status()
                 self.update_line_numbers()
-                print(f"DEBUG: Metin dosyası açıldı: {file_path}")
+                # print(f"DEBUG: Metin dosyası açıldı: {file_path}")
                 
             except Exception as e:
                 print(f"DEBUG: Dosya açma hatası: {e}")
@@ -491,7 +491,7 @@ class ProfessionalTextEditor:
             )
         else:
             file_path = self.filename
-            print(f"DEBUG: Dosya {file_path} ismiyle saklanacak")
+            # print(f"DEBUG: Dosya {file_path} ismiyle saklanacak")
 
         if file_path:
             try:
@@ -500,7 +500,7 @@ class ProfessionalTextEditor:
                     f.write(text)
                 
                 self.status_label.configure(text=f"✓ Kaydedildi: {os.path.basename(file_path)}")
-                print(f"DEBUG: Metin dosyası kaydedildi: {file_path}")
+                # print(f"DEBUG: Metin dosyası kaydedildi: {file_path}")
                 self.filename = os.path.basename(file_path)
                 self.window.title(f"Metin Editörü - {self.filename}")
                 messagebox.showinfo("Başarılı", f"Metin başarıyla kaydedildi:\n{file_path}")
@@ -515,7 +515,7 @@ class ProfessionalTextEditor:
         self.window.clipboard_clear()
         self.window.clipboard_append(text)
         self.status_label.configure(text="✓ Metin panoya kopyalandı")
-        print("DEBUG: Metin panoya kopyalandı")
+        # print("DEBUG: Metin panoya kopyalandı")
     
     def select_all(self):
         """Tüm metni seç"""
@@ -617,7 +617,7 @@ class ProfessionalTextEditor:
             self.current_find_index = 0
             self.highlight_current_find()
             self.status_label.configure(text=f"🔍 {len(self.find_results)} sonuç bulundu")
-            print(f"DEBUG: '{search_term}' için {len(self.find_results)} sonuç bulundu")
+            # print(f"DEBUG: '{search_term}' için {len(self.find_results)} sonuç bulundu")
         else:
             self.status_label.configure(text=f"🔍 '{search_term}' bulunamadı")
     
@@ -693,4 +693,4 @@ class ProfessionalTextEditor:
         self.status_label.configure(text=f"✓ {count} adet değiştirildi")
         self.find_results = []
         self.update_status()
-        print(f"DEBUG: {count} adet '{search_term}' -> '{replace_term}' değiştirildi")
+        # print(f"DEBUG: {count} adet '{search_term}' -> '{replace_term}' değiştirildi")

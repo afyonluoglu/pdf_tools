@@ -39,14 +39,14 @@ class TTSManager:
         # edge-tts modülünü kontrol et
         self._check_edge_tts()
         
-        print("DEBUG: TTS Manager oluşturuldu")
+        # print("DEBUG: TTS Manager oluşturuldu")
     
     def _check_edge_tts(self):
         """edge-tts modülünün yüklü olup olmadığını kontrol et"""
         try:
             import edge_tts
             self.edge_tts_available = True
-            print("DEBUG: edge-tts modülü mevcut")
+            # print("DEBUG: edge-tts modülü mevcut")
         except ImportError:
             self.edge_tts_available = False
             print("DEBUG: edge-tts modülü bulunamadı - pip install edge-tts gerekli")
@@ -81,7 +81,7 @@ class TTSManager:
         thread.start()
         self._playback_thread = thread
         
-        print(f"DEBUG: Seslendirme başlatıldı - Ses: {voice}, Hız: {speed}")
+        # print(f"DEBUG: Seslendirme başlatıldı - Ses: {voice}, Hız: {speed}")
     
     def _speak_async(self, text: str, voice: str, speed: str, callback: Optional[Callable]):
         """Asenkron seslendirme işlemi"""
@@ -203,7 +203,7 @@ class TTSManager:
                 except:
                     pass
             
-            print("DEBUG: Pygame ile seslendirme tamamlandı")
+            # print("DEBUG: Pygame ile seslendirme tamamlandı")
             
         except ImportError:
             print("DEBUG: pygame bulunamadı, playsound deneniyor...")
@@ -225,7 +225,7 @@ class TTSManager:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, play)
             
-            print("DEBUG: playsound ile seslendirme tamamlandı")
+            # print("DEBUG: playsound ile seslendirme tamamlandı")
             
         except ImportError:
             print("DEBUG: playsound bulunamadı, Windows Media Player ile deneniyor...")
@@ -259,7 +259,7 @@ class TTSManager:
                     break
                 await asyncio.sleep(0.1)
             
-            print("DEBUG: Subprocess ile seslendirme tamamlandı")
+            # print("DEBUG: Subprocess ile seslendirme tamamlandı")
             
         except Exception as e:
             print(f"DEBUG: Subprocess oynatma hatası: {e}")
@@ -295,7 +295,7 @@ class TTSManager:
         # NOT: Temp dosyayı hemen silmiyoruz, oynatma thread'i kullanıyor olabilir
         # Thread bitince silinecek
         
-        print("DEBUG: TTS durduruldu")
+        # print("DEBUG: TTS durduruldu")
     
     def _safe_callback(self, callback: Callable, message: str):
         """GUI thread'inde callback çağır"""
@@ -309,7 +309,7 @@ class TTSManager:
         if self.temp_file and os.path.exists(self.temp_file):
             try:
                 os.remove(self.temp_file)
-                print(f"DEBUG: Geçici dosya silindi: {self.temp_file}")
+                # print(f"DEBUG: Geçici dosya silindi: {self.temp_file}")
             except Exception as e:
                 print(f"DEBUG: Geçici dosya silinemedi: {e}")
         self.temp_file = None
@@ -379,9 +379,9 @@ class TTSManager:
             while current_pos < len(text) and text[current_pos] in ' \n\t':
                 current_pos += 1
         
-        print(f"DEBUG: Metin {len(chunks)} parçaya bölündü")
-        for i, chunk in enumerate(chunks):
-            print(f"DEBUG: Parça {i+1}: {len(chunk)} karakter")
+        # print(f"DEBUG: Metin {len(chunks)} parçaya bölündü")
+        # for i, chunk in enumerate(chunks):
+        #     print(f"DEBUG: Parça {i+1}: {len(chunk)} karakter")
         
         return chunks
     
@@ -409,7 +409,7 @@ class TTSManager:
         )
         thread.start()
         
-        print(f"DEBUG: MP3 kaydetme başlatıldı - {output_path}")
+        # print(f"DEBUG: MP3 kaydetme başlatıldı - {output_path}")
     
     def _save_mp3_async(self, text: str, voice: str, speed: str, output_path: str, callback: Optional[Callable]):
         """Asenkron MP3 kaydetme işlemi - parçalama desteği ile"""
@@ -434,7 +434,7 @@ class TTSManager:
                         if callback:
                             self._safe_callback(callback, f"🔊 Parça {i+1}/{len(chunks)} oluşturuluyor...")
                         loop.run_until_complete(self._generate_mp3_chunk(chunk, voice, speed, part_path))
-                        print(f"DEBUG: Parça {i+1} kaydedildi: {part_path}")
+                        # print(f"DEBUG: Parça {i+1} kaydedildi: {part_path}")
                     
                     if callback:
                         self._safe_callback(callback, f"✓ {len(chunks)} MP3 dosyası kaydedildi")
@@ -473,7 +473,7 @@ class TTSManager:
             if callback:
                 self._safe_callback(callback, f"✓ MP3 kaydedildi: {os.path.basename(output_path)}")
             
-            print(f"DEBUG: MP3 başarıyla kaydedildi: {output_path}")
+            # print(f"DEBUG: MP3 başarıyla kaydedildi: {output_path}")
             
         except Exception as e:
             print(f"DEBUG: MP3 oluşturma hatası: {e}")
