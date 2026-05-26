@@ -1,0 +1,48 @@
+# Log, test and some initial files
+*.log
+*.txt
+test*
+_*.*
+
+# Settings and configuration files
+*.json
+*.db
+
+# URL files
+*.url
+
+# Install Files
+__pycache__/
+dist/
+build/
+*.spec
+*.iss
+*.cfg
+*.ico
+*.exe
+# Ignore original install package and "required libraries" list
+!requirements.txt
+
+# Python bytecode files
+*.py[cod]
+*$py.class
+*.so
+
+# Batch and Backup files 
+*.bat
+*.zip
+
+# Temporary dir, subdirs and its files 
+TEMP/
+**/TEMP/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+

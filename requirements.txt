@@ -1,0 +1,22 @@
+# Professional PDF Viewer Requirements
+
+# Core GUI Framework
+customtkinter>=5.2.0
+
+# PDF Processing
+PyMuPDF>=1.23.0
+
+# Image Processing
+Pillow>=10.0.0
+
+# Additional utilities (usually included with Python)
+# tkinter - Built-in with Python
+# threading - Built-in with Python
+# json - Built-in with Python
+# os - Built-in with Python
+# math - Built-in with Python
+# datetime - Built-in with Python
+
+# Optional for enhanced features
+# reportlab>=4.0.0  # For PDF creation
+# matplotlib>=3.7.0  # For advanced plotting in annotations

@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Professional PDF Viewer – Yardım</title>
+  <style>
+    /* ──────────────────────────────────────────
+       Reset & Variables
+    ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #1a1a2e;
+      --bg2:         #16213e;
+      --bg3:         #0f3460;
+      --surface:     #1e2a45;
+      --surface2:    #253655;
+      --accent:      #4a9eff;
+      --accent2:     #7bc0ff;
+      --accent-glow: rgba(74,158,255,0.25);
+      --text:        #e8edf5;
+      --text-muted:  #8fa3c0;
+      --success:     #2ecc71;
+      --warning:     #f39c12;
+      --danger:      #e74c3c;
+      --info:        #3498db;
+      --border:      rgba(74,158,255,0.2);
+      --radius:      10px;
+      --radius-sm:   6px;
+      --shadow:      0 4px 24px rgba(0,0,0,0.4);
+      --font:        'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono:   'Consolas', 'Courier New', monospace;
+      --nav-width:   280px;
+    }
+
+    html { scroll-behavior: smooth; font-size: 15px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ──────────────────────────────────────────
+       Sidebar Navigation
+    ────────────────────────────────────────── */
+    #sidebar {
+      width: var(--nav-width);
+      min-width: var(--nav-width);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-track { background: transparent; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+
+    .sidebar-brand {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-brand h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-brand p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-version {
+      display: inline-block;
+      background: var(--bg3);
+      color: var(--accent2);
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    nav ul { list-style: none; padding: 12px 0; }
+
+    nav > ul > li > a,
+    nav > ul > li > span {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.87rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: all 0.18s;
+    }
+
+    nav > ul > li > a:hover {
+      color: var(--text);
+      background: rgba(74,158,255,0.08);
+      border-left-color: var(--accent);
+    }
+
+    nav > ul > li > a.active {
+      color: var(--accent);
+      background: rgba(74,158,255,0.12);
+      border-left-color: var(--accent);
+    }
+
+    nav > ul > li > span {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      padding-top: 18px;
+      cursor: default;
+    }
+
+    nav > ul > li > a .nav-icon { font-size: 1rem; opacity: 0.85; }
+
+    /* ──────────────────────────────────────────
+       Main Content
+    ────────────────────────────────────────── */
+    #content {
+      flex: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 48px 80px;
+      overflow-x: hidden;
+    }
+
+    /* ──────────────────────────────────────────
+       Hero Section
+    ────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--bg3) 0%, var(--surface) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 48px;
+      margin-bottom: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(74,158,255,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .hero p { font-size: 1rem; color: var(--text-muted); max-width: 520px; }
+
+    .hero-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .badge-blue   { background: rgba(74,158,255,0.15); color: var(--accent2); border: 1px solid rgba(74,158,255,0.3); }
+    .badge-green  { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+    .badge-orange { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+
+    /* ──────────────────────────────────────────
+       Sections
+    ────────────────────────────────────────── */
+    section { margin-bottom: 64px; }
+
+    h2.section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3.sub-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    p { color: var(--text-muted); margin-bottom: 12px; }
+
+    /* ──────────────────────────────────────────
+       Feature Cards
+    ────────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-glow), var(--shadow);
+    }
+
+    .card-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .card h4 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .card p { font-size: 0.83rem; color: var(--text-muted); margin: 0; }
+
+    /* ──────────────────────────────────────────
+       Tables
+    ────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin-bottom: 20px; border-radius: var(--radius); border: 1px solid var(--border); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: var(--bg3);
+      color: var(--accent2);
+      font-weight: 700;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(74,158,255,0.05); }
+    tbody td { padding: 10px 16px; color: var(--text-muted); vertical-align: top; }
+    tbody td:first-child { color: var(--text); font-weight: 500; }
+
+    /* ──────────────────────────────────────────
+       Keyboard Shortcuts
+    ────────────────────────────────────────── */
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+
+    .shortcut-item:hover { background: var(--surface2); }
+
+    .keys {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    kbd {
+      background: var(--bg3);
+      border: 1px solid rgba(74,158,255,0.4);
+      border-bottom: 3px solid rgba(74,158,255,0.4);
+      border-radius: 5px;
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .shortcut-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* ──────────────────────────────────────────
+       Step-by-Step How-To
+    ────────────────────────────────────────── */
+    .steps { counter-reset: step; list-style: none; margin-bottom: 20px; }
+
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      min-width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--bg3);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .steps li p { margin: 0; font-size: 0.9rem; }
+
+    /* ──────────────────────────────────────────
+       Code & Inline Code
+    ────────────────────────────────────────── */
+    code {
+      font-family: var(--font-mono);
+      background: rgba(74,158,255,0.1);
+      color: var(--accent2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.85em;
+    }
+
+    pre {
+      background: #0d1b2a;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+      font-size: 0.85rem;
+      color: #c9d1d9;
+      font-family: var(--font-mono);
+      line-height: 1.6;
+    }
+
+    /* ──────────────────────────────────────────
+       Callout / Alert Boxes
+    ────────────────────────────────────────── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid;
+      margin: 16px 0;
+      font-size: 0.88rem;
+    }
+
+    .callout-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+    .callout p { margin: 0; }
+
+    .callout-info    { background: rgba(52,152,219,0.1); border-color: rgba(52,152,219,0.35); color: #aad4f5; }
+    .callout-tip     { background: rgba(46,204,113,0.1); border-color: rgba(46,204,113,0.35); color: #a8e6c0; }
+    .callout-warning { background: rgba(243,156,18,0.1); border-color: rgba(243,156,18,0.35); color: #fbd58e; }
+
+    /* ──────────────────────────────────────────
+       Architecture Tree
+    ────────────────────────────────────────── */
+    .file-tree {
+      background: #0d1b2a;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px 24px;
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .file-tree .dir  { color: var(--accent2); font-weight: 700; }
+    .file-tree .file { color: #c9d1d9; }
+    .file-tree .note { color: var(--text-muted); font-style: italic; }
+
+    /* ──────────────────────────────────────────
+       Back-to-top button
+    ────────────────────────────────────────── */
+    #back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: var(--bg3);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      box-shadow: var(--shadow);
+    }
+
+    #back-to-top.visible { opacity: 1; pointer-events: all; }
+    #back-to-top:hover { background: var(--accent); color: var(--bg); }
+
+    /* ──────────────────────────────────────────
+       Print
+    ────────────────────────────────────────── */
+    @media print {
+      #sidebar { display: none; }
+      #back-to-top { display: none; }
+      #content { max-width: 100%; padding: 20px; }
+    }
+
+    /* ──────────────────────────────────────────
+       Responsive
+    ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      #sidebar { width: 100%; height: auto; position: relative; }
+      #content { padding: 24px 20px 60px; }
+      .hero { padding: 28px 24px; }
+      .hero h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-brand">
+    <h2>📄 PDF Viewer</h2>
+    <p>Kullanım Kılavuzu</p>
+    <span class="sidebar-version">v2.0 · 2026</span>
+  </div>
+  <nav>
+    <ul>
+      <li><a href="#overview" class="nav-link"><span class="nav-icon">🏠</span> Genel Bakış</a></li>
+      <li><span>TEMEL ÖZELLİKLER</span></li>
+      <li><a href="#viewing" class="nav-link"><span class="nav-icon">📄</span> PDF Görüntüleme</a></li>
+      <li><a href="#navigation" class="nav-link"><span class="nav-icon">🗂️</span> Sayfa Navigasyonu</a></li>
+      <li><a href="#search" class="nav-link"><span class="nav-icon">🔍</span> Metin Arama</a></li>
+      <li><a href="#annotations" class="nav-link"><span class="nav-icon">🖍️</span> Annotation Araçları</a></li>
+      <li><span>METİN ARAÇLARI</span></li>
+      <li><a href="#extraction" class="nav-link"><span class="nav-icon">📤</span> Metin Çıkarma</a></li>
+      <li><a href="#editor" class="nav-link"><span class="nav-icon">✏️</span> Metin Editörü</a></li>
+      <li><a href="#tts" class="nav-link"><span class="nav-icon">🔊</span> Seslendirme (TTS)</a></li>
+      <li><span>DOSYA & AYARLAR</span></li>
+      <li><a href="#file-ops" class="nav-link"><span class="nav-icon">💾</span> Dosya İşlemleri</a></li>
+      <li><a href="#shortcuts" class="nav-link"><span class="nav-icon">⌨️</span> Klavye Kısayolları</a></li>
+      <li><span>TEKNİK</span></li>
+      <li><a href="#architecture" class="nav-link"><span class="nav-icon">🏗️</span> Proje Mimarisi</a></li>
+      <li><a href="#install" class="nav-link"><span class="nav-icon">🚀</span> Kurulum</a></li>
+      <li><a href="#errors" class="nav-link"><span class="nav-icon">🛠️</span> Hata Yönetimi</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- ══════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════ -->
+<main id="content">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Professional PDF Viewer</h1>
+    <p>Python ile geliştirilmiş, modern karanlık tema arayüzlü, kapsamlı PDF görüntüleyici ve metin işleme uygulaması.</p>
+    <div class="hero-meta">
+      <span class="badge badge-blue">🐍 Python 3.x</span>
+      <span class="badge badge-green">✅ CustomTkinter</span>
+      <span class="badge badge-orange">📦 PyMuPDF</span>
+      <span class="badge badge-blue">🔊 Edge TTS</span>
+    </div>
+  </div>
+
+  <!-- ══ GENEL BAKIŞ ══ -->
+  <section id="overview">
+    <h2 class="section-title">🏠 Genel Bakış</h2>
+    <p>
+      <strong>Professional PDF Viewer</strong>, PyMuPDF motoru ile yüksek kaliteli PDF görüntüleme, 
+      çok türlü annotation desteği, gelişmiş metin çıkarma ve Türkçe metin-seslendirme (TTS) 
+      özelliklerini tek bir arayüzde sunar.
+    </p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">📄</div>
+        <h4>Yüksek Kalite Render</h4>
+        <p>PyMuPDF ile piksel-hassas sayfa görüntüleme; %10–%500 zoom, sayfa döndürme.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🖍️</div>
+        <h4>Annotation Araçları</h4>
+        <p>Vurgulama, not, işaret ve link annotation'ları; renk seçici ve annotation yönetimi.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h4>Gelişmiş Arama</h4>
+        <p>Tüm sayfalarda metin tarama; kırmızı çerçeveli vurgulama, "Next" ile sıralı gezinme.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📤</div>
+        <h4>Metin Çıkarma</h4>
+        <p>PDF sayfalarından Türkçe-uyumlu metin çıkarma; akıllı satır birleştirme.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">✏️</div>
+        <h4>Profesyonel Editör</h4>
+        <p>Bul-değiştir, undo/redo, satır numaraları, font boyutu, istatistik çubuğu.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔊</div>
+        <h4>Türkçe TTS</h4>
+        <p>Microsoft Edge TTS; Emel / Ahmet sesleri, 3 hız, MP3 dışa aktarım.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PDF GÖRÜNTÜLEME ══ -->
+  <section id="viewing">
+    <h2 class="section-title">📄 PDF Görüntüleme</h2>
+    <p>Uygulama açıldığında ana pencere üç ana bölümden oluşur:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Bölge</th><th>İçerik</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Üst Toolbar</td><td>Dosya işlemleri, navigasyon, zoom, arama ve annotation araçları</td></tr>
+          <tr><td>Sol Panel (Sidebar)</td><td>Scrollable küçük resim (thumbnail) paneli — tüm sayfalar listelenir</td></tr>
+          <tr><td>Sağ Alan (Canvas)</td><td>Aktif sayfa, yatay + dikey scrollbar ile büyük sayfalar için kaydırma</td></tr>
+          <tr><td>Alt Durum Çubuğu</td><td>Yüklenen dosya adı, sayfa sayısı ve anlık bilgilendirmeler</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">🔎 Zoom İşlemleri</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Eylem</th><th>Yöntem</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Yakınlaştır</td><td><code>🔍+</code> butonu veya <kbd>Ctrl</kbd>+<kbd>+</kbd></td></tr>
+          <tr><td>Uzaklaştır</td><td><code>🔍-</code> butonu veya <kbd>Ctrl</kbd>+<kbd>-</kbd></td></tr>
+          <tr><td>Fare ile zoom</td><td><kbd>Ctrl</kbd> tuşunu basılı tutarken Mouse Wheel</td></tr>
+          <tr><td>%100'e sıfırla</td><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">🔄 Sayfa Döndürme</h3>
+    <p>Toolbar'daki <code>↻</code> butonuna her tıklamada sayfa 90° döndürülür (0° → 90° → 180° → 270° → 0°).</p>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <p>Küçük resim panelinde herhangi bir sayfaya tek tıklayarak o sayfaya anında atlayabilirsiniz. Thumbnail paneli ayrıca kendi scrollbar'ına sahiptir.</p>
+    </div>
+  </section>
+
+  <!-- ══ SAYFA NAVİGASYONU ══ -->
+  <section id="navigation">
+    <h2 class="section-title">🗂️ Sayfa Navigasyonu</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Eylem</th><th>Toolbar</th><th>Klavye</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Önceki sayfa</td><td>⬅️ butonu</td><td><kbd>←</kbd> veya <kbd>Page Up</kbd></td></tr>
+          <tr><td>Sonraki sayfa</td><td>➡️ butonu</td><td><kbd>→</kbd> veya <kbd>Page Down</kbd></td></tr>
+          <tr><td>Belirli sayfaya git</td><td>Sayfa numarası kutusuna yaz + <kbd>Enter</kbd></td><td>—</td></tr>
+          <tr><td>Thumbnail ile git</td><td>Sol paneldeki küçük resme tıkla</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Toolbar ortasındaki sayfa numarası kutusu her zaman güncel sayfayı gösterir. Yanındaki <code>/ N</code> etiketi toplam sayfa sayısını bildirir.</p>
+  </section>
+
+  <!-- ══ METİN ARAMA ══ -->
+  <section id="search">
+    <h2 class="section-title">🔍 Metin Arama</h2>
+
+    <ol class="steps">
+      <li><p>Toolbar'daki arama kutusuna aranacak metni yazın (veya <kbd>Ctrl</kbd>+<kbd>F</kbd> ile odaklanın).</p></li>
+      <li><p><kbd>Enter</kbd> tuşuna basın veya <code>🔍</code> butonuna tıklayın.</p></li>
+      <li><p>Tüm sayfalarda tarama yapılır; bulunan eşleşmeler <strong>kırmızı çerçeve</strong> ile işaretlenir ve ilk eşleşmenin bulunduğu sayfaya otomatik gidilir.</p></li>
+      <li><p><strong>"Next"</strong> butonuna basarak sonraki eşleşmeye sıralı geçiş yapın.</p></li>
+    </ol>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p>Arama büyük/küçük harf duyarlıdır. Tüm eşleşmeler terminale de raporlanır (<code>🚩 Sonuç N: Sayfa X, Konum: ...</code>).</p>
+    </div>
+  </section>
+
+  <!-- ══ ANNOTATION ARAÇLARI ══ -->
+  <section id="annotations">
+    <h2 class="section-title">🖍️ Annotation Araçları</h2>
+
+    <h3 class="sub-title">🖍️ Metin Vurgulama</h3>
+    <ol class="steps">
+      <li><p>İsteğe bağlı olarak <code>🎨 Renk</code> butonuyla vurgulama rengi belirleyin.</p></li>
+      <li><p><code>🖍️ İşaretle</code> butonuna tıklayarak vurgulama modunu etkinleştirin (durum çubuğu "Vurgulama modu açık" yazan görünür).</p></li>
+      <li><p>PDF canvas üzerinde fare ile dikdörtgen çizerek vurgulamak istediğiniz alanı seçin.</p></li>
+      <li><p>Modu kapatmak için tekrar <code>🖍️ İşaretle</code> butonuna basın.</p></li>
+    </ol>
+
+    <h3 class="sub-title">🎨 Renk Seçenekleri</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Renk</th><th>Hex</th><th>Kullanım</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Sarı</td><td><code>#FFFF00</code></td><td>Varsayılan vurgulama rengi</td></tr>
+          <tr><td>Yeşil</td><td><code>#00FF00</code></td><td>Onaylanan/önemli bilgiler</td></tr>
+          <tr><td>Kırmızı</td><td><code>#FF0000</code></td><td>Dikkat çeken alanlar</td></tr>
+          <tr><td>Mavi</td><td><code>#0000FF</code></td><td>Referans bölümleri</td></tr>
+          <tr><td>Magenta</td><td><code>#FF00FF</code></td><td>Özel notlar</td></tr>
+          <tr><td>Cyan</td><td><code>#00FFFF</code></td><td>Bilgi kutuları</td></tr>
+          <tr><td>Özel renk</td><td>—</td><td><code>🎨 Renk</code> butonu ile renk seçici</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">⚡ Hızlı Annotation Araçları (Toolbar)</h3>
+    <p>Toolbar'ın sağ bölümündeki hızlı araçlarla popup diyaloglar üzerinden anında annotation eklenebilir:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Buton</th><th>Kısayol</th><th>Açıklama</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>📝 Not</code></td><td>—</td><td>Küçük popup ile mevcut sayfaya not ekle (Ctrl+Enter ile onayla)</td></tr>
+          <tr><td><code>⭐ İşaret</code></td><td>—</td><td>Mevcut sayfayı anında işaretle (popup olmadan)</td></tr>
+          <tr><td><code>🔗 Link</code></td><td>—</td><td>URL + opsiyonel etiket ile link ekle (Enter ile onayla)</td></tr>
+          <tr><td><code>🗂️ Erişim</code></td><td><kbd>F2</kbd></td><td>Tüm annotation'ları listeleyen Hızlı Erişim Paneli'ni aç</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">🗂️ F2 — Hızlı Erişim Paneli</h3>
+    <p><kbd>F2</kbd> tuşu veya <code>🗂️ Erişim</code> butonu ile açılır. Tüm annotation'ları tek pencerede listeler:</p>
+    <ul style="color:var(--text-muted);margin-left:20px;margin-bottom:12px;font-size:0.9rem;">
+      <li>Tür filtreleme: Tümü / Not / İşaret / Link</li>
+      <li><em>Gör</em> butonu ile ilgili sayfaya hızlı erişim</li>
+      <li><em>Sil</em> butonu ile listeden kaldırma</li>
+    </ul>
+
+    <h3 class="sub-title">📝 Gelişmiş Annotation Yönetimi</h3>
+    <p>Toolbar'daki <code>📝 Gelişmiş</code> butonu ile <strong>Gelişmiş Annotation Araçları</strong> penceresi açılır.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Annotation Türü</th><th>İkon</th><th>Açıklama</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Vurgulama</td><td>🖍️</td><td>Seçilen renkte dikdörtgen vurgulama</td></tr>
+          <tr><td>Not</td><td>📝</td><td>Sayfaya metin notu ekleme; üzerine gelinince tooltip gösterir</td></tr>
+          <tr><td>İşaret (Bookmark)</td><td>⭐</td><td>Sayfa işareti; çift tıklamada detay gösterir</td></tr>
+          <tr><td>Link</td><td>🔗</td><td>URL bağlantısı; çift tıklamada tarayıcıda açar</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Annotation listesinde:</p>
+    <ul style="color:var(--text-muted);margin-left:20px;margin-bottom:12px;font-size:0.9rem;">
+      <li>Tüm annotation'lar sayfa numarasıyla listelenir</li>
+      <li>Arama kutusu ile annotation içeriklerinde filtreleme yapılır</li>
+      <li>Her annotation'ın yanındaki <em>Sil</em> butonu ile tek tek kaldırılabilir</li>
+    </ul>
+
+    <h3 class="sub-title">🖱️ Tooltip, Çift Tıklama ve Sağ Tık Menüsü</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Eylem</th><th>Sonuç</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Not üzerinde bekle</td><td>Not içeriğinin ilk 50 karakterini gösteren tooltip (3 sn)</td></tr>
+          <tr><td>Link üzerinde bekle</td><td>URL'yi gösteren tooltip</td></tr>
+          <tr><td>📝 Nota çift tıkla</td><td>Not metnini mesaj kutusunda gösterir</td></tr>
+          <tr><td>🔗 Linke çift tıkla</td><td>URL varsayılan tarayıcıda açılır</td></tr>
+          <tr><td>⭐ İşarete çift tıkla</td><td>Sayfa bilgisini gösterir</td></tr>
+          <tr><td>Herhangi annotation'a <strong>sağ tıkla</strong></td><td>Bağlam menüsü: <em>✏️ Değiştir</em> (not/link) + <em>🗑️ Sil</em></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ METİN ÇIKARMA ══ -->
+  <section id="extraction">
+    <h2 class="section-title">📤 PDF'den Metin Çıkarma</h2>
+
+    <ol class="steps">
+      <li><p>PDF dosyasını açın ve toolbar'daki <code>📄 Metne Çevir</code> butonuna tıklayın.</p></li>
+      <li><p>Sayfa aralığı seçme penceresi açılır — <strong>Tüm sayfaları çevir</strong> veya <strong>Sayfa aralığı belirt</strong> (örn. 3–15) seçeneğini işaretleyin.</p></li>
+      <li><p><em>Metne Çevir</em> butonuna tıklayın. Progress bar ile ilerlemeyi takip edin.</p></li>
+      <li><p>İşlem tamamlandığında metin otomatik olarak <strong>Profesyonel Metin Editörü</strong>'nde açılır.</p></li>
+    </ol>
+
+    <h3 class="sub-title">🧹 Akıllı Metin Temizleme</h3>
+    <p>Çıkarma işlemi sırasında uygulanan otomatik temizlik adımları:</p>
+    <ul style="color:var(--text-muted);margin-left:20px;margin-bottom:12px;font-size:0.9rem;line-height:1.9;">
+      <li>Satır içi gereksiz kırılmalar birleştirilir (paragraf yapısı korunur)</li>
+      <li>Hece bölünmeleri (<code>kelime-\n devam</code>) akıllıca birleştirilir</li>
+      <li>Ardışık boş satırlar tek satıra indirilir</li>
+      <li>Her sayfa için <code>=== SAYFA N ===</code> ayraçları eklenir</li>
+    </ul>
+
+    <div class="callout callout-warning">
+      <span class="callout-icon">⚠️</span>
+      <p>Taranmış (görüntü tabanlı) PDF'lerden metin çıkarma desteklenmez. Böyle dosyalar için OCR aracı gereklidir.</p>
+    </div>
+  </section>
+
+  <!-- ══ METİN EDİTÖRÜ ══ -->
+  <section id="editor">
+    <h2 class="section-title">✏️ Profesyonel Metin Editörü</h2>
+    <p>Metin çıkarma tamamlandığında otomatik açılan bu editör, çıkarılan metni düzenleme, kaydetme ve seslendirme için tam özellikli bir ortam sunar.</p>
+
+    <h3 class="sub-title">📋 Araç Çubuğu 1 — Dosya &amp; Düzenleme</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Buton</th><th>İşlev</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>📂 Aç</td><td>Varolan .txt / .md dosyasını editöre yükle</td></tr>
+          <tr><td>💾 Kaydet</td><td>Düzenlenen metni .txt / .md olarak kaydet</td></tr>
+          <tr><td>📋 Panoya Kopyala</td><td>Tüm metni sistem panosuna kopyala</td></tr>
+          <tr><td>↩️ Geri Al</td><td>Son işlemi geri al (50 adıma kadar)</td></tr>
+          <tr><td>↪️ Yinele</td><td>Geri alınan işlemi yinele</td></tr>
+          <tr><td>🔤 BÜYÜK</td><td>Seçili metni büyük harfe çevir</td></tr>
+          <tr><td>🔡 küçük</td><td>Seçili metni küçük harfe çevir</td></tr>
+          <tr><td>📏 Satır Temizle</td><td>Gereksiz boş satırları kaldır</td></tr>
+          <tr><td>🔊 Seslendir</td><td>Seçili metni (yoksa tümünü) Türkçe seslendir</td></tr>
+          <tr><td>⏹️ Durdur</td><td>Aktif seslendirmeyi durdur</td></tr>
+          <tr><td>💾 MP3 Kaydet</td><td>Seslendirilen metni .mp3 olarak dışa aktar</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">🔍 Araç Çubuğu 2 — Bul &amp; Değiştir</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Kontrol</th><th>İşlev</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Bul kutusu + 🔍</td><td>Metinde ilk eşleşmeyi bul ve vurgula</td></tr>
+          <tr><td>▼ Sonraki</td><td>Bir sonraki eşleşmeye git</td></tr>
+          <tr><td>▲ Önceki</td><td>Bir önceki eşleşmeye git</td></tr>
+          <tr><td>Değiştir kutusu + Değiştir</td><td>Aktif eşleşmeyi belirtilen metinle değiştir</td></tr>
+          <tr><td>Tümünü (Değiştir)</td><td>Tüm eşleşmeleri tek seferde değiştir</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">📊 Durum Çubuğu</h3>
+    <p>Editörün alt kısmında anlık olarak şunlar gösterilir:</p>
+    <ul style="color:var(--text-muted);margin-left:20px;margin-bottom:12px;font-size:0.9rem;line-height:1.9;">
+      <li><strong>Satır sayısı</strong></li>
+      <li><strong>Kelime sayısı</strong></li>
+      <li><strong>Karakter sayısı</strong></li>
+      <li><strong>TTS durumu</strong> (Ses oluşturuluyor / Oynatılıyor / Tamamlandı)</li>
+    </ul>
+  </section>
+
+  <!-- ══ TTS ══ -->
+  <section id="tts">
+    <h2 class="section-title">🔊 Metin Seslendirme (TTS)</h2>
+    <p>Metin Editörü, <strong>Microsoft Edge TTS</strong> teknolojisini kullanarak Türkçe seslendirme yapar. İnternet bağlantısı gerektirir.</p>
+
+    <h3 class="sub-title">🎙️ Ses Seçenekleri</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Ses</th><th>ID</th><th>Açıklama</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Emel (Kadın)</td><td><code>tr-TR-EmelNeural</code></td><td>Doğal Türkçe kadın sesi</td></tr>
+          <tr><td>Ahmet (Erkek)</td><td><code>tr-TR-AhmetNeural</code></td><td>Doğal Türkçe erkek sesi</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub-title">⚡ Hız Seçenekleri</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Hız</th><th>Rate Değeri</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Yavaş</td><td><code>-20%</code></td></tr>
+          <tr><td>Normal</td><td><code>+0%</code></td></tr>
+          <tr><td>Hızlı</td><td><code>+25%</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ol class="steps">
+      <li><p>Editörde seslendirmek istediğiniz metni seçin (seçim yoksa tüm metin kullanılır).</p></li>
+      <li><p>Toolbar 2'den ses (Emel/Ahmet) ve hız (Yavaş/Normal/Hızlı) seçin.</p></li>
+      <li><p><code>🔊 Seslendir</code> butonuna tıklayın. TTS durum etiketi "Ses oluşturuluyor..." mesajını gösterir.</p></li>
+      <li><p>Seslendirme arka planda çalışır; arayüz bloklanmaz.</p></li>
+      <li><p>Durdurmak için <code>⏹️ Durdur</code> butonuna tıklayın.</p></li>
+      <li><p>MP3 dosyası oluşturmak için <code>💾 MP3 Kaydet</code> butonuna tıklayın ve kayıt konumunu seçin.</p></li>
+    </ol>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p>TTS özelliği için <code>edge-tts</code> ve <code>pygame</code> kütüphanelerinin kurulu olması gerekir: <code>pip install edge-tts pygame</code></p>
+    </div>
+  </section>
+
+  <!-- ══ DOSYA İŞLEMLERİ ══ -->
+  <section id="file-ops">
+    <h2 class="section-title">💾 Dosya İşlemleri</h2>
+
+    <h3 class="sub-title">📂 PDF Açma</h3>
+    <ol class="steps">
+      <li><p><code>📁 Aç</code> butonuna tıklayın veya <kbd>Ctrl</kbd>+<kbd>O</kbd> tuşlayın.</p></li>
+      <li><p>Dosya seçici diyaloğundan <code>.pdf</code> dosyasını seçin.</p></li>
+      <li><p>Progress bar penceresi açılır; büyük dosyalar thumbnail üretimi dahil kademeli yüklenir.</p></li>
+      <li><p>Yükleme tamamlanınca alt durum çubuğu dosya adı ve sayfa sayısını gösterir.</p></li>
+    </ol>
+
+    <h3 class="sub-title">💾 PDF Kaydetme</h3>
+    <ol class="steps">
+      <li><p><code>💾 Kaydet</code> butonuna tıklayın veya <kbd>Ctrl</kbd>+<kbd>S</kbd> tuşlayın.</p></li>
+      <li><p>Dosya adı ve konum seçin.</p></li>
+      <li><p>Tüm annotation'lar PDF'e gömülü olarak kaydedilir (<code>garbage=4, deflate=True</code> ile optimize edilmiş).</p></li>
+    </ol>
+
+    <h3 class="sub-title">⚙️ Ayarlar</h3>
+    <p>Kullanıcı tercihleri program kapanırken <code>pdf_viewer_settings.json</code> dosyasına otomatik kaydedilir ve bir sonraki açılışta yüklenir:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Ayar</th><th>Değer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>highlight_color</td><td>Son seçilen vurgulama rengi (hex)</td></tr>
+          <tr><td>zoom_level</td><td>Son kullanılan zoom seviyesi (float)</td></tr>
+          <tr><td>last_opened</td><td>Son açılış tarihi (ISO format)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ KLAVYE KISAYOLLARI ══ -->
+  <section id="shortcuts">
+    <h2 class="section-title">⌨️ Klavye Kısayolları</h2>
+
+    <h3 class="sub-title">Ana Pencere</h3>
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>O</kbd></div>
+        <span class="shortcut-desc">PDF dosyası aç</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></div>
+        <span class="shortcut-desc">PDF kaydet</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>F</kbd></div>
+        <span class="shortcut-desc">Arama kutusuna odaklan</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>+</kbd></div>
+        <span class="shortcut-desc">Yakınlaştır</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>-</kbd></div>
+        <span class="shortcut-desc">Uzaklaştır</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>0</kbd></div>
+        <span class="shortcut-desc">Zoom'u %100'e sıfırla</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>←</kbd></div>
+        <span class="shortcut-desc">Önceki sayfa</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>→</kbd></div>
+        <span class="shortcut-desc">Sonraki sayfa</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Page Up</kbd></div>
+        <span class="shortcut-desc">Önceki sayfa</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Page Down</kbd></div>
+        <span class="shortcut-desc">Sonraki sayfa</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>⇧ Wheel</kbd></div>
+        <span class="shortcut-desc">Fare tekerleği ile zoom</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>F1</kbd></div>
+        <span class="shortcut-desc">Bu yardım dosyasını aç</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>F2</kbd></div>
+        <span class="shortcut-desc">Hızlı Erişim Paneli (tüm annotation'lar)</span>
+      </div>
+    </div>
+
+    <h3 class="sub-title">Metin Editörü</h3>
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>Z</kbd></div>
+        <span class="shortcut-desc">Geri al</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>Y</kbd></div>
+        <span class="shortcut-desc">Yinele</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>A</kbd></div>
+        <span class="shortcut-desc">Tümünü seç</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>C</kbd></div>
+        <span class="shortcut-desc">Kopyala</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>V</kbd></div>
+        <span class="shortcut-desc">Yapıştır</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></div>
+        <span class="shortcut-desc">Kaydet</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>Ctrl</kbd>+<kbd>F</kbd></div>
+        <span class="shortcut-desc">Bul</span>
+      </div>
+      <div class="shortcut-item">
+        <div class="keys"><kbd>F3</kbd></div>
+        <span class="shortcut-desc">Sonraki bul</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PROJE MİMARİSİ ══ -->
+  <section id="architecture">
+    <h2 class="section-title">🏗️ Proje Mimarisi</h2>
+    <p>Uygulama <strong>Mixin</strong> tabanlı modüler mimari kullanır. <code>PDFViewer</code> ana sınıfı hiçbir iş mantığı içermez; tüm özellikler ayrı Mixin sınıflarından miras alınır.</p>
+
+    <div class="file-tree">
+<span class="dir">PDF Tools/</span>
+├── <span class="file">pdf_view_main.py</span>          <span class="note">← Ana giriş: PDFViewer sınıfı, uygulama başlatma</span>
+├── <span class="file">pdf_view_ui_setup.py</span>      <span class="note">← UISetupMixin: Toolbar, canvas, sidebar, keybinding'ler</span>
+├── <span class="file">pdf_view_navigation.py</span>    <span class="note">← NavigationMixin: Sayfa geçişi, zoom, döndürme</span>
+├── <span class="file">pdf_view_display.py</span>       <span class="note">← DisplayMixin: Sayfa render, thumbnail oluşturma</span>
+├── <span class="file">pdf_view_search.py</span>        <span class="note">← SearchMixin: Metin arama, sonuç vurgulama</span>
+├── <span class="file">pdf_view_annotations.py</span>   <span class="note">← AnnotationMixin: Tooltip, not/bookmark/link</span>
+├── <span class="file">pdf_view_file_ops.py</span>      <span class="note">← FileOperationsMixin: Açma, kaydetme, ayarlar</span>
+├── <span class="file">pdf_view_text_extraction.py</span><span class="note">← TextExtractionMixin: PDF→metin, sayfa aralığı</span>
+├── <span class="file">pdf_view_text_editor.py</span>   <span class="note">← ProfessionalTextEditor: Metin editörü penceresi</span>
+├── <span class="file">pdf_view_tts.py</span>           <span class="note">← TTSManager: Microsoft Edge TTS seslendirme</span>
+├── <span class="file">pdf_view_utils.py</span>         <span class="note">← Yardımcı fonk.: exception handler, merkezleme</span>
+├── <span class="file">annotation_manager_fixed.py</span><span class="note">← FixedAnnotationManager + FixedHighlightTool</span>
+├── <span class="file">pdf_viewer_settings.json</span>  <span class="note">← Kullanıcı ayarları (otomatik)</span>
+├── <span class="file">pdf_viewer_errors.log</span>     <span class="note">← Hata günlüğü (otomatik)</span>
+├── <span class="file">requirements.txt</span>          <span class="note">← Python bağımlılıkları</span>
+└── <span class="file">start_pdf_viewer.bat</span>      <span class="note">← Windows hızlı başlatma betiği</span>
+    </div>
+
+    <h3 class="sub-title">Mixin Hiyerarşisi</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Mixin</th><th>Temel Metodlar</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>UISetupMixin</code></td><td>setup_ui(), setup_toolbar(), setup_canvas(), setup_keybindings()</td></tr>
+          <tr><td><code>NavigationMixin</code></td><td>previous_page(), next_page(), goto_page(), zoom_in/out(), rotate_page()</td></tr>
+          <tr><td><code>DisplayMixin</code></td><td>display_page(), create_thumbnails(), update_ui()</td></tr>
+          <tr><td><code>AnnotationMixin</code></td><td>toggle_highlight_mode(), on_canvas_click/motion/double_click(), show/hide_tooltip()</td></tr>
+          <tr><td><code>SearchMixin</code></td><td>search_text(), search_next(), show_search_result()</td></tr>
+          <tr><td><code>FileOperationsMixin</code></td><td>open_pdf(), save_pdf(), load/save_settings(), on_closing()</td></tr>
+          <tr><td><code>TextExtractionMixin</code></td><td>extract_text_to_file(), show_page_range_dialog(), start_text_extraction()</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ KURULUM ══ -->
+  <section id="install">
+    <h2 class="section-title">🚀 Kurulum</h2>
+
+    <h3 class="sub-title">Gereksinimler</h3>
+    <pre>pip install customtkinter>=5.2.0 PyMuPDF>=1.23.0 Pillow>=10.0.0</pre>
+
+    <p>TTS özelliği için (isteğe bağlı):</p>
+    <pre>pip install edge-tts pygame</pre>
+
+    <p>Veya <code>requirements.txt</code> ile tümünü:</p>
+    <pre>pip install -r requirements.txt</pre>
+
+    <h3 class="sub-title">Çalıştırma</h3>
+    <pre>python pdf_view_main.py</pre>
+    <p>Windows'ta <code>start_pdf_viewer.bat</code> dosyasına çift tıklayarak da başlatılabilir.</p>
+
+    <h3 class="sub-title">Kullanılan Kütüphaneler</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Kütüphane</th><th>Versiyon</th><th>Amaç</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CustomTkinter</td><td>≥5.2.0</td><td>Modern karanlık tema UI framework</td></tr>
+          <tr><td>PyMuPDF (fitz)</td><td>≥1.23.0</td><td>PDF okuma, rendering, annotation</td></tr>
+          <tr><td>Pillow (PIL)</td><td>≥10.0.0</td><td>Görüntü işleme, thumbnail</td></tr>
+          <tr><td>Tkinter</td><td>Built-in</td><td>Canvas, scroll, temel widget'lar</td></tr>
+          <tr><td>threading</td><td>Built-in</td><td>Arka plan işlemleri</td></tr>
+          <tr><td>edge-tts</td><td>Opsiyonel</td><td>Microsoft Edge TTS seslendirme</td></tr>
+          <tr><td>pygame</td><td>Opsiyonel</td><td>MP3 dosyası oynatma</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ HATA YÖNETİMİ ══ -->
+  <section id="errors">
+    <h2 class="section-title">🛠️ Hata Yönetimi</h2>
+
+    <p>Uygulama global bir exception handler kullanır. Tüm beklenmedik hatalar:</p>
+    <ul style="color:var(--text-muted);margin-left:20px;margin-bottom:16px;font-size:0.9rem;line-height:1.9;">
+      <li>Terminal/konsola detaylı stack trace ile yazdırılır</li>
+      <li><code>pdf_viewer_errors.log</code> dosyasına tarih-damgalı olarak kaydedilir</li>
+    </ul>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Hata Türü</th><th>Davranış</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>PDF yükleme hatası</td><td>Progress penceresi kapatılır; kullanıcıya mesaj gösterilir</td></tr>
+          <tr><td>PDF kaydetme hatası</td><td>Hata mesaj kutusu gösterilir</td></tr>
+          <tr><td>Annotation ekleme hatası</td><td>Terminal + mesaj kutusu ile bildirilir; kaydetme devam eder</td></tr>
+          <tr><td>TTS hatası</td><td>Durum etiketi güncellenir; seslendirme iptal edilir</td></tr>
+          <tr><td>Genel exception</td><td>Global handler yakalar, log'a yazar, uygulama çalışmaya devam eder</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <p>Herhangi bir hata durumunda önce <code>pdf_viewer_errors.log</code> dosyasını inceleyiniz. Her çalıştırmada log dosyası sıfırdan başlatılır.</p>
+    </div>
+
+    <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:0.82rem;">
+      <p><strong style="color:var(--accent)">Professional PDF Viewer</strong> &nbsp;·&nbsp; Dr. Mustafa Afyonluoğlu &nbsp;·&nbsp; 2026</p>
+      <p style="margin-top:4px;">Bu yardım dosyasını açmak için ana pencerede <kbd>F1</kbd> tuşuna basın.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- Back to Top -->
+<button id="back-to-top" title="Başa dön" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  /* ── Active nav highlighting ── */
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  function setActive() {
+    let current = '';
+    sections.forEach(sec => {
+      if (window.scrollY + 120 >= sec.offsetTop) current = sec.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+
+  /* ── Back to top visibility ── */
+  const btn = document.getElementById('back-to-top');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 400);
+    setActive();
+  }, { passive: true });
+
+  setActive();
+</script>
+</body>
+</html>
