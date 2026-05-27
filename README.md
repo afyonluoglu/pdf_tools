@@ -2,8 +2,8 @@
 
 Python ile geliştirilmiş, modern CustomTkinter arayüzlü, kapsamlı bir PDF görüntüleyici ve düzenleyici uygulaması.
 
-> **Geliştirici:** Dr. Mustafa Afyonluoğlu | **Yıl:** Mart - 2026  
-> **Yardım için:** `F1` tuşuna basın
+> **Geliştirici:** Dr. Mustafa Afyonluoğlu | **Tarih:** Mart - 2026  
+> **Detaylı yardım için:** `F1` tuşuna basın
 
 ---
 
@@ -31,36 +31,38 @@ Python ile geliştirilmiş, modern CustomTkinter arayüzlü, kapsamlı bir PDF g
 - **Çift scrollbar**: Dikey ve yatay kaydırma desteği büyük sayfalarda tam görüntü sağlar
 
 ### 🗂️ Sayfa Navigasyonu
-- **Önceki/Sonraki sayfa**: ⬅️ ➡️ butonları veya klavye yön tuşları / Page Up-Down
-- **Direkt sayfa atlama**: Sayfa numarası kutusuna numara yazıp Enter
+- **Önceki/Sonraki sayfa**: Üst toolbarda ⬅️ ➡️ butonları veya klavye Page Up-Down tuşları
+- **Direkt sayfa atlama**: Sayfa numarası kutusuna numara yazıp Enter tuşuna basarak sayfaya geçiş
 - **Thumbnail tıklama**: Sol panelden herhangi bir sayfaya tek tıkla gitme
 
 ### 🔍 Gelişmiş Metin Arama
 - Tüm sayfalarda anlık metin tarama
 - Bulunan eşleşmeler kırmızı çerçeve ile vurgulanır
-- **"Next" butonu** ile sonraki eşleşmeye sıralı geçiş
+- **"Next" tuşu** ile sonraki eşleşmeye sıralı geçiş
 - `Ctrl+F` ile arama kutusuna odaklanma
 
 ### 🖍️ Annotation (İşaretleme) Araçları
 - **Vurgulama modu**: "🖍️ İşaretle" butonuyla etkinleştirme; fare ile dikdörtgen çizerek metin vurgulama
-- **Renk seçici**: "🎨 Renk" butonu veya önceden tanımlı 6 renk paleti (Sarı, Yeşil, Kırmızı, Mavi, Magenta, Cyan)
-- **Gelişmiş Annotation Yönetimi** (📝 Gelişmiş butonu):
+(Aynı tuşa tekrar tıklanarak vurgulama modundan çıkılır)
+- **Renk seçici**: "🎨 Renk" butonu ile vurgulama renginin seçilebilmesi
+- **Gelişmiş İşaretleme Yönetimi** (📝 Gelişmiş butonu):
   - Dört annotation türü: **Vurgulama**, **Not**, **İşaret (Bookmark)**, **Link**
-  - Tüm annotation'ları listeleyen scrollable panel
+  - Tüm annotation'ları listeleyen kaydırılabilir panel
   - Annotation'larda metin arama ve filtreleme
-  - Tek tek silme desteği
+  - Mevcut annotaion'ları tek tek silme desteği
 - **Tooltip desteği**: Not ve link annotation'larının üzerine gelindiğinde otomatik açıklama balonu
-- **Hızlı Annotation Araç Çubuğu** (toolbar sağ kısmı):
-  - **📝 Not**: Anlık not ekleme popup'ı (mevcut sayfaya)
-  - **⭐ İşaret**: Mevcut sayfayı anında işaretle (popup yok)
-  - **🔗 Link**: URL + opsiyonel etiket ile link ekleme popup'ı
-  - **🗂️ Erişim**: F2 ile aynı Hızlı Erişim panelini açar
+- **Bağlantıya Geçiş**: Link annotation'una çift tıklayarak internet gezgininde bu bağlantıyı açma
+- **Hızlı Annotation Araç Çubuğu** (İkinci toolbar):
+  - **📝 Not**: Not ekleme penceresi (mevcut sayfaya)
+  - **⭐ İşaret**: Mevcut sayfayı anında işaretle 
+  - **🔗 Link**: URL + opsiyonel açıklama ile link ekleme penceresi
+
 - **F2 — Hızlı Erişim Paneli**: Tüm annotation'ları tek ekranda listeler; tür filtreleme, Gör/Sil butonları
-- **Çift tıklama (canvas üzerinde)**:
+- **PDF üzerinde Çift tıklama İşlevleri**:
   - 📝 Not → Not metnini mesaj kutusunda gösterir
   - 🔗 Link → URL'yi varsayılan tarayıcıda açar
   - ⭐ İşaret → Sayfa bilgisini gösterir
-- **Sağ tıklama (canvas üzerinde)**: Annotation üzerinde bağlam menüsü açar — **Değiştir** (not/link için) ve **Sil** seçenekleri
+- **Sağ tıklama**: Annotation üzerinde bağlam menüsü açar — **Değiştir** (not/link için) ve **Sil** seçenekleri
 
 ### 📄 PDF'den Metin Çıkarma
 - "📄 Metne Çevir" butonu ile PDF sayfalarından metin aktarımı
@@ -95,8 +97,8 @@ Metin Editörü içinde entegre Microsoft Edge TTS ile Türkçe seslendirme:
 ### 💾 Dosya İşlemleri
 - **PDF açma**: Dosya seçici diyaloğu; `.pdf` formatı
 - **Progress bar ile yükleme**: Büyük dosyalarda sayfalı yükleme, ilerleme göstergesi
-- **Annotation'larla kaydetme**: Tüm vurgulamalar ve notlar PDF'e gömülü olarak kaydedilir
-- **Ayarlar kalıcılığı**: Son zoom seviyesi ve highlight rengi `pdf_viewer_settings.json` dosyasına otomatik kaydedilir
+- **Annotation'larla kaydetme**: Tüm vurgulamalar ve notlar PDF'te tekrar açıldığında gösterilebilecek şekilde kaydedilir
+- **Ayarlar kalıcılığı**: Son zoom seviyesi ve highlight rengi gibi ayarlar `pdf_viewer_settings.json` dosyasına otomatik kaydedilir
 
 ### 🛠️ Hata Yönetimi
 - Global exception handler: Tüm beklenmedik hatalar `pdf_viewer_errors.log` dosyasına tarih-damgalı olarak kaydedilir
@@ -194,8 +196,8 @@ Windows'ta `start_pdf_viewer.bat` dosyasına çift tıklayarak da başlatılabil
 ### Sayfa Navigasyonu
 | Eylem | Yöntem |
 |---|---|
-| Sonraki sayfa | ➡️ butonu, Sağ Ok, Page Down |
-| Önceki sayfa | ⬅️ butonu, Sol Ok, Page Up |
+| Sonraki sayfa | ➡️ butonu, Page Down |
+| Önceki sayfa | ⬅️ butonu, Page Up |
 | Belirli sayfaya git | Sayfa numarası kutusuna yaz + Enter |
 | Thumbnail ile git | Sol paneldeki küçük resme tıkla |
 
@@ -209,7 +211,7 @@ Windows'ta `start_pdf_viewer.bat` dosyasına çift tıklayarak da başlatılabil
 
 ### Metin Arama
 1. Toolbar'daki arama kutusuna metni yazın (veya `Ctrl+F` ile odaklanın)
-2. `Enter` veya 🔍 butonuna basın — bulunan tüm sonuçlar kırmızı çerçeve ile gösterilir
+2. `Enter` veya 🔍 butonuna basın — bulunan tüm sonuçlar kırmızı çerçeve içerisinde gösterilir
 3. **"Next"** butonuyla sonraki eşleşmeye geçin
 
 ### Metin Vurgulama
@@ -221,10 +223,10 @@ Windows'ta `start_pdf_viewer.bat` dosyasına çift tıklayarak da başlatılabil
 ### Hızlı Annotation Ekleme
 | Araç | Yöntem |
 |---|---|
-| 📝 Not | Toolbar'daki **"📝 Not"** butonu → popup'ta yaz → ✓ Ekle veya Ctrl+Enter |
+| 📝 Not | Toolbar'daki **"📝 Not"** butonu → açılan pencereye notu yaz → ✓ Ekle veya Ctrl+Enter |
 | ⭐ İşaret | Toolbar'daki **"⭐ İşaret"** butonu → sayfaya anında eklenir |
-| 🔗 Link | Toolbar'daki **"🔗 Link"** butonu → URL ve etiket gir → ✓ Ekle veya Enter |
-| Tüm Listesi | **"🗂️ Erişim"** butonu veya **`F2`** → Hızlı Erişim Paneli |
+| 🔗 Link | Toolbar'daki **"🔗 Link"** butonu → URL ve açıklama gir → ✓ Ekle veya Enter |
+| Tüm İşaretleme Listesi | **"🗂️ Erişim"** butonu veya **`F2`** → Hızlı Erişim Paneli |
 
 ### Annotation ile Etkileşim
 | Eylem | Sonuç |
@@ -256,7 +258,7 @@ Windows'ta `start_pdf_viewer.bat` dosyasına çift tıklayarak da başlatılabil
 ### PDF Kaydetme
 1. **"💾 Kaydet"** butonuna veya `Ctrl+S` tuşlayın
 2. Kayıt konumunu seçin
-3. Tüm annotation'lar PDF'e gömülü olarak kaydedilir
+3. Tüm annotation'lar PDF ile senkronize şekilde kaydedilir
 
 ---
 
@@ -313,13 +315,13 @@ Windows'ta `start_pdf_viewer.bat` dosyasına çift tıklayarak da başlatılabil
 - **Lazy thumbnail**: Küçük resimler yükleme sırasında kademeli olarak oluşturulur
 - **Bellek yönetimi**: PDF dokümanı kapatma sırasında düzgün serbest bırakılır
 - **JSON ayarları**: Zoom ve renk tercihleri oturum dışında da kalıcıdır
-- **Hata günlükleme**: Tüm istisnalar `pdf_viewer_errors.log` dosyasına tarihli olarak kaydedilir
+- **Hata günlükleme**: Tüm hatalar `pdf_viewer_errors.log` dosyasına tarihli olarak kaydedilir
 
 ---
 
 ## 📝 Lisans
 
-Bu proje CC BY-NC-SA 4.0 lisansı şartlarında sunulmaktadır.
+Bu proje CC BY-NC-SA 4.0 lisans şartlarında sunulmaktadır.
 
 ---
 
