@@ -171,7 +171,7 @@ class FileOperationsMixin:
         ctk.CTkLabel(
             frame1,
             text="  Annotation'lar PDF'in yanında ayrı bir .ann.json dosyasında tutulur.\n"
-                 "  Bu program bu dosyadan okuyarak annotation'ları gösterir.",
+                 "  Bu sayede annotation'lar yeniden düzenlenebilir ve gösterilir.",
             font=ctk.CTkFont(size=11),
             text_color="gray70",
             justify="left"
