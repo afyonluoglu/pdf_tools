@@ -266,8 +266,8 @@ class DisplayMixin:
                             outline="",
                             tags="pdf_annotation"
                         )
-                        print(f"DEBUG [load_pdf_annots]: {annot_type} yüklendi → "
-                              f"canvas({x1:.1f},{y1:.1f},{x2:.1f},{y2:.1f}) renk:{hex_color}")
+                        # print(f"DEBUG [load_pdf_annots]: {annot_type} yüklendi → "
+                        #       f"canvas({x1:.1f},{y1:.1f},{x2:.1f},{y2:.1f}) renk:{hex_color}")
 
                     elif annot_type == 'Text':
                         # Not / İşaret / Bağlantı (Text annotation) — ikon olarak göster
@@ -288,7 +288,7 @@ class DisplayMixin:
                             fill=color,
                             tags="pdf_annotation"
                         )
-                        print(f"DEBUG [load_pdf_annots]: Text({icon}) yüklendi → canvas({x1:.1f},{y1:.1f})")
+                        # print(f"DEBUG [load_pdf_annots]: Text({icon}) yüklendi → canvas({x1:.1f},{y1:.1f})")
 
                 except Exception as e:
                     print(f"Annotation işleme hatası: {e}")

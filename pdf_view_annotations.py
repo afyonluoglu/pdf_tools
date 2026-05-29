@@ -56,7 +56,7 @@ class AnnotationMixin:
             
             label = tk.Label(self.tooltip_window, text=text, 
                             background="lightyellow", relief="solid", borderwidth=1,
-                            font=("Arial", 8))
+                            font=("Arial", 12))
             label.pack()
             
             # Otomatik gizleme
