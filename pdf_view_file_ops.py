@@ -101,38 +101,271 @@ class FileOperationsMixin:
         threading.Thread(target=load_pdf_thread, daemon=True).start()
     
     def save_pdf(self):
-        """PDF'yi kaydet (annotation'lar JSON sidecar'a ayrı kaydedilir)"""
+        """PDF'yi kaydet - kaydetme yöntemini kullanıcıya sorar"""
         if not self.pdf_document:
             messagebox.showwarning("Uyarı", "Kaydetmek için bir PDF dosyası yükleyin.")
             return
-        
+
+        # Annotation varsa kaydetme yöntemi sor
+        has_annotations = (
+            hasattr(self, 'annotation_manager') and
+            bool(self.annotation_manager.annotations)
+        )
+
+        if has_annotations:
+            save_mode = self._ask_save_mode()
+            if save_mode is None:
+                return  # Kullanıcı iptal etti
+        else:
+            save_mode = "json"  # Annotation yoksa varsayılan
+
         file_path = filedialog.asksaveasfilename(
             title="PDF'yi Kaydet",
             defaultextension=".pdf",
             filetypes=[("PDF dosyaları", "*.pdf")]
         )
-        
-        if file_path:
-            try:
-                # PDF'yi kaydet (annotation'lar fitz'e gömülmeden)
-                self.pdf_document.save(file_path, garbage=4, deflate=True)
-                
-                # Annotation'ları JSON sidecar'a kaydet (aynı klasör, aynı isim + .ann.json)
-                if hasattr(self, 'annotation_manager') and self.annotation_manager.annotations:
-                    base = os.path.splitext(file_path)[0]
-                    ann_path = base + '.ann.json'
-                    anns_to_save = [
-                        {k: v for k, v in ann.items() if k != 'canvas_id'}
-                        for ann in self.annotation_manager.annotations
-                    ]
-                    with open(ann_path, 'w', encoding='utf-8') as f:
-                        json.dump(anns_to_save, f, indent=2, ensure_ascii=False)
-                    # print(f"DEBUG: {len(anns_to_save)} annotation JSON sidecar'a kaydedildi: {os.path.basename(ann_path)}")
-                
+
+        if not file_path:
+            return
+
+        if save_mode == "json":
+            self._save_with_json_sidecar(file_path)
+        else:
+            self._save_with_embedded_annotations(file_path)
+
+    def _ask_save_mode(self):
+        """Kaydetme yöntemi seçme diyaloğunu göster. 'json', 'embed' veya None döndürür."""
+        from pdf_view_utils import center_window
+        import tkinter as tk
+
+        result = {"mode": None}
+
+        dialog = ctk.CTkToplevel(self.root)
+        dialog.title("Annotation Kaydetme Yöntemi")
+        dialog.geometry("520x300")
+        center_window(dialog, 520, 300)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.resizable(False, False)
+
+        # Başlık
+        ctk.CTkLabel(
+            dialog,
+            text="Annotation'lar nasıl kaydedilsin?",
+            font=ctk.CTkFont(size=15, weight="bold")
+        ).pack(pady=(20, 10))
+
+        # Seçenek tutucu
+        mode_var = tk.StringVar(value="json")
+
+        # Seçenek 1
+        frame1 = ctk.CTkFrame(dialog, fg_color="transparent")
+        frame1.pack(fill="x", padx=30, pady=4)
+        ctk.CTkRadioButton(
+            frame1,
+            text="Ayrı dosyada sakla  (.ann.json sidecar)",
+            variable=mode_var,
+            value="json",
+            font=ctk.CTkFont(size=13)
+        ).pack(anchor="w")
+        ctk.CTkLabel(
+            frame1,
+            text="  Annotation'lar PDF'in yanında ayrı bir .ann.json dosyasında tutulur.\n"
+                 "  Bu program bu dosyadan okuyarak annotation'ları gösterir.",
+            font=ctk.CTkFont(size=11),
+            text_color="gray70",
+            justify="left"
+        ).pack(anchor="w", padx=22)
+
+        # Seçenek 2
+        frame2 = ctk.CTkFrame(dialog, fg_color="transparent")
+        frame2.pack(fill="x", padx=30, pady=4)
+        ctk.CTkRadioButton(
+            frame2,
+            text="PDF içine göm  (diğer programlarda da görünsün)",
+            variable=mode_var,
+            value="embed",
+            font=ctk.CTkFont(size=13)
+        ).pack(anchor="w")
+        ctk.CTkLabel(
+            frame2,
+            text="  Annotation'lar standart PDF formatında doğrudan dosyaya işlenir.\n"
+                 "  Adobe Reader, Foxit, tarayıcılar gibi tüm PDF okuyucularda görünür.",
+            font=ctk.CTkFont(size=11),
+            text_color="gray70",
+            justify="left"
+        ).pack(anchor="w", padx=22)
+
+        # Butonlar
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack(pady=16)
+
+        def on_ok():
+            result["mode"] = mode_var.get()
+            dialog.destroy()
+
+        def on_cancel():
+            result["mode"] = None
+            dialog.destroy()
+
+        ctk.CTkButton(btn_frame, text="Kaydet", width=110, command=on_ok).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="İptal", width=110, fg_color="gray40",
+                      hover_color="gray30", command=on_cancel).pack(side="left", padx=10)
+
+        dialog.wait_window()
+        return result["mode"]
+
+    def _save_with_json_sidecar(self, file_path):
+        """PDF'yi kaydet; annotation'ları .ann.json sidecar dosyasına yaz."""
+        try:
+            self.pdf_document.save(file_path, garbage=4, deflate=True)
+            print(f"DEBUG [save_pdf/json]: PDF kaydedildi → {os.path.basename(file_path)}")
+
+            if hasattr(self, 'annotation_manager') and self.annotation_manager.annotations:
+                base = os.path.splitext(file_path)[0]
+                ann_path = base + '.ann.json'
+                anns_to_save = [
+                    {k: v for k, v in ann.items() if k != 'canvas_id'}
+                    for ann in self.annotation_manager.annotations
+                ]
+                with open(ann_path, 'w', encoding='utf-8') as f:
+                    json.dump(anns_to_save, f, indent=2, ensure_ascii=False)
+                print(f"DEBUG [save_pdf/json]: {len(anns_to_save)} annotation sidecar'a yazıldı → {os.path.basename(ann_path)}")
+                messagebox.showinfo(
+                    "Başarılı",
+                    f"PDF kaydedildi:\n{file_path}\n\n"
+                    f"Annotation'lar ({len(anns_to_save)} adet) ayrı dosyaya kaydedildi:\n"
+                    f"{os.path.basename(ann_path)}"
+                )
+            else:
                 messagebox.showinfo("Başarılı", f"PDF başarıyla kaydedildi:\n{file_path}")
-                
-            except Exception as e:
-                messagebox.showerror("Hata", f"PDF kaydedilirken hata oluştu:\n{str(e)}")
+
+        except Exception as e:
+            print(f"DEBUG [save_pdf/json]: HATA → {e}")
+            messagebox.showerror("Hata", f"PDF kaydedilirken hata oluştu:\n{str(e)}")
+
+    def _save_with_embedded_annotations(self, file_path):
+        """Annotation'ları PDF'e standart PDF annotation olarak göm ve kaydet."""
+        import fitz
+        try:
+            # Çalışmak için PDF'in bir kopyasını aç (orijinal doc değişmesin)
+            import tempfile, shutil
+            tmp_path = file_path + ".tmp_embed.pdf"
+            self.pdf_document.save(tmp_path, garbage=4, deflate=True)
+            embed_doc = fitz.open(tmp_path)
+            print(f"DEBUG [save_pdf/embed]: Geçici PDF oluşturuldu → {os.path.basename(tmp_path)}")
+
+            annotations = self.annotation_manager.annotations if hasattr(self, 'annotation_manager') else []
+            embedded_count = 0
+
+            for ann in annotations:
+                try:
+                    page_num = ann.get('page', 0)
+                    if page_num < 0 or page_num >= len(embed_doc):
+                        continue
+
+                    page = embed_doc[page_num]
+                    ann_type = ann.get('type', '')
+
+                    if ann_type == 'highlight':
+                        coords = ann.get('coordinates', {})
+                        if not coords:
+                            continue
+                        # Canvas koordinatlarını PDF koordinatlarına çevir (zoom'u geri al)
+                        zoom = getattr(self, 'zoom_level', 1.0)
+                        x1 = coords.get('x1', 0) / zoom
+                        y1 = coords.get('y1', 0) / zoom
+                        x2 = coords.get('x2', 0) / zoom
+                        y2 = coords.get('y2', 0) / zoom
+                        rect = fitz.Rect(x1, y1, x2, y2)
+                        color_hex = ann.get('color', '#FFFF00')
+                        rgb = self._hex_to_rgb_float(color_hex)
+                        # Dikdörtgen annotation kullan: Highlight tipi metin vurgulama içindir
+                        # ve quad tabanlı olduğundan kenarlar kayabilir. Square/Rect tipi
+                        # gerçek dikdörtgen verir ve tüm PDF okuyucularda doğru görünür.
+                        annot = page.add_rect_annot(rect)
+                        # Doldurma rengi = kenarlık rengi (görünmez kenarlık)
+                        annot.set_colors(fill=rgb, stroke=rgb)
+                        # Yarı saydamlık: dış PDF okuyucularda orijinal görünüme yakın
+                        annot.set_opacity(0.4)
+                        annot.update()
+                        embedded_count += 1
+                        print(f"DEBUG [save_pdf/embed]: Highlight (Rect) eklendi → sayfa {page_num+1}, rect={rect}, renk={color_hex}")
+
+                    elif ann_type == 'note':
+                        pos = ann.get('position', {'x': 18, 'y': 18})
+                        point = fitz.Point(pos['x'], pos['y'])
+                        text = ann.get('text', '')
+                        annot = page.add_text_annot(point, text, icon="Note")
+                        annot.set_info(title="Not")
+                        annot.update()
+                        embedded_count += 1
+                        print(f"DEBUG [save_pdf/embed]: Not eklendi → sayfa {page_num+1}, nokta={point}, metin='{text[:30]}'")
+
+                    elif ann_type == 'bookmark':
+                        pos = ann.get('position', {'x': 18, 'y': 18})
+                        point = fitz.Point(pos['x'], pos['y'])
+                        text = ann.get('text', 'İşaret')
+                        annot = page.add_text_annot(point, text, icon="Star")
+                        annot.set_info(title="İşaret")
+                        annot.update()
+                        embedded_count += 1
+                        print(f"DEBUG [save_pdf/embed]: İşaret eklendi → sayfa {page_num+1}, nokta={point}")
+
+                    elif ann_type == 'link':
+                        pos = ann.get('position', {'x': 18, 'y': 18})
+                        url = ann.get('url', '')
+                        text = ann.get('text', '')
+                        content = f"{text}\nURL: {url}" if url else text
+                        point = fitz.Point(pos['x'], pos['y'])
+                        annot = page.add_text_annot(point, content, icon="Key")
+                        annot.set_info(title="Bağlantı")
+                        annot.update()
+                        embedded_count += 1
+                        print(f"DEBUG [save_pdf/embed]: Bağlantı eklendi → sayfa {page_num+1}, nokta={point}, url='{url[:40]}'")
+
+                except Exception as ann_err:
+                    print(f"DEBUG [save_pdf/embed]: Annotation gömme hatası ({ann.get('type','?')}): {ann_err}")
+
+            embed_doc.save(file_path, garbage=4, deflate=True)
+            embed_doc.close()
+            os.remove(tmp_path)
+            print(f"DEBUG [save_pdf/embed]: {embedded_count} annotation gömüldü → {os.path.basename(file_path)}")
+
+            # Eğer aynı isimli .ann.json sidecar varsa sil:
+            # PDF içine gömdük; yoksa yeniden açıldığında çift çizim oluşur.
+            base = os.path.splitext(file_path)[0]
+            ann_sidecar = base + '.ann.json'
+            if os.path.exists(ann_sidecar):
+                os.remove(ann_sidecar)
+                print(f"DEBUG [save_pdf/embed]: Eski sidecar JSON silindi (çift çizim önlendi) → {os.path.basename(ann_sidecar)}")
+            messagebox.showinfo(
+                "Başarılı",
+                f"PDF başarıyla kaydedildi:\n{file_path}\n\n"
+                f"{embedded_count} annotation PDF içine gömüldü.\n"
+                f"Diğer PDF okuyucularda da görünecektir."
+            )
+
+        except Exception as e:
+            print(f"DEBUG [save_pdf/embed]: GENEL HATA → {e}")
+            # Geçici dosyayı temizle
+            try:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+            except Exception:
+                pass
+            messagebox.showerror("Hata", f"PDF kaydedilirken hata oluştu:\n{str(e)}")
+
+    @staticmethod
+    def _hex_to_rgb_float(hex_color):
+        """'#RRGGBB' formatındaki rengi (r, g, b) float tuple'ına çevir (0.0-1.0)."""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 6:
+            r = int(hex_color[0:2], 16) / 255.0
+            g = int(hex_color[2:4], 16) / 255.0
+            b = int(hex_color[4:6], 16) / 255.0
+            return (r, g, b)
+        return (1.0, 1.0, 0.0)  # varsayılan sarı
     
     def load_settings(self):
         """Ayarları yükle"""

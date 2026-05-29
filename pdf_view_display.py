@@ -239,48 +239,57 @@ class DisplayMixin:
                 try:
                     annot_type = annot.type[1]  # Annotation tipi
                     rect = annot.rect
-                    
-                    if annot_type in ['Highlight', 'Square']:  # Sadece ana annotation tipleri
+
+                    if annot_type in ['Highlight', 'Square']:
                         # PDF koordinatlarını Canvas koordinatlarına çevir
                         x1, y1 = pdf_to_canvas_coords(rect.x0, rect.y0)
                         x2, y2 = pdf_to_canvas_coords(rect.x1, rect.y1)
-                        
-                        # Rengi al
+
+                        # Rengi al — önce fill, yoksa stroke (Highlight için stroke'ta tutulur)
                         colors = annot.colors
-                        if colors and 'fill' in colors and colors['fill']:
-                            fill_color = colors['fill']
-                            # RGB'den hex'e çevir
-                            hex_color = f"#{int(fill_color[0]*255):02x}{int(fill_color[1]*255):02x}{int(fill_color[2]*255):02x}"
-                        elif colors and 'stroke' in colors and colors['stroke']:
-                            stroke_color = colors['stroke']
-                            # RGB'den hex'e çevir
-                            hex_color = f"#{int(stroke_color[0]*255):02x}{int(stroke_color[1]*255):02x}{int(stroke_color[2]*255):02x}"
+                        hex_color = "#FFFF00"  # varsayılan
+                        if colors:
+                            fill = colors.get('fill')
+                            stroke = colors.get('stroke')
+                            if fill:
+                                hex_color = f"#{int(fill[0]*255):02x}{int(fill[1]*255):02x}{int(fill[2]*255):02x}"
+                            elif stroke:
+                                hex_color = f"#{int(stroke[0]*255):02x}{int(stroke[1]*255):02x}{int(stroke[2]*255):02x}"
+
+                        # Tüm vurgulama tipleri aynı şekilde çizilir:
+                        # stipple="gray50" → yarı saydamlık, outline="" → kenarlık yok
+                        # Bu, show_highlights() ile çizilen orijinal görünümle birebir eşleşir.
+                        self.canvas.create_rectangle(
+                            x1, y1, x2, y2,
+                            fill=hex_color,
+                            stipple="gray50",
+                            outline="",
+                            tags="pdf_annotation"
+                        )
+                        print(f"DEBUG [load_pdf_annots]: {annot_type} yüklendi → "
+                              f"canvas({x1:.1f},{y1:.1f},{x2:.1f},{y2:.1f}) renk:{hex_color}")
+
+                    elif annot_type == 'Text':
+                        # Not / İşaret / Bağlantı (Text annotation) — ikon olarak göster
+                        x1, y1 = pdf_to_canvas_coords(rect.x0, rect.y0)
+                        title = annot.info.get('title', '')
+                        content = annot.info.get('content', '')
+                        icon = annot.info.get('icon', 'Note')
+                        if icon == 'Star':
+                            symbol, color = "⭐", "orange"
+                        elif icon == 'Key':
+                            symbol, color = "🔗", "#0099ff"
                         else:
-                            hex_color = "#FFFF00"  # Varsayılan sarı
-                        
-                        # Canvas'ta göster
-                        if annot_type in ['Square', 'Polygon']:
-                            # Dikdörtgen olarak göster (fill + outline)
-                            self.canvas.create_rectangle(
-                                x1, y1, x2, y2,
-                                fill=hex_color,
-                                outline=hex_color,
-                                width=2,
-                                stipple="gray50",
-                                tags="pdf_annotation"
-                            )
-                        else:
-                            # Highlight olarak göster
-                            self.canvas.create_rectangle(
-                                x1, y1, x2, y2,
-                                fill=hex_color,
-                                stipple="gray50",
-                                outline="",
-                                tags="pdf_annotation"
-                            )
-                        
-                        # print(f"PDF Annotation yüklendi: {annot_type} at ({x1:.1f}, {y1:.1f}, {x2:.1f}, {y2:.1f}) renk: {hex_color}")
-                        
+                            symbol, color = "📝", "green"
+                        self.canvas.create_text(
+                            x1, y1,
+                            text=symbol,
+                            font=("Arial", 16),
+                            fill=color,
+                            tags="pdf_annotation"
+                        )
+                        print(f"DEBUG [load_pdf_annots]: Text({icon}) yüklendi → canvas({x1:.1f},{y1:.1f})")
+
                 except Exception as e:
                     print(f"Annotation işleme hatası: {e}")
                     
