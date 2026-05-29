@@ -29,8 +29,10 @@ class HighlightTool:
         self.is_active = False
         if hasattr(self.pdf_viewer, 'on_canvas_click'):
             self.pdf_viewer.canvas.bind("<Button-1>", self.pdf_viewer.on_canvas_click)
-        self.pdf_viewer.canvas.unbind("<B1-Motion>")
-        self.pdf_viewer.canvas.unbind("<ButtonRelease-1>")
+        if hasattr(self.pdf_viewer, 'on_canvas_drag'):
+            self.pdf_viewer.canvas.bind("<B1-Motion>", self.pdf_viewer.on_canvas_drag)
+        if hasattr(self.pdf_viewer, 'on_canvas_release'):
+            self.pdf_viewer.canvas.bind("<ButtonRelease-1>", self.pdf_viewer.on_canvas_release)
         self.pdf_viewer.canvas.configure(cursor="")
 
     def start_highlight(self, event):

@@ -206,6 +206,8 @@ class UISetupMixin:
         
         # Mouse events
         self.canvas.bind("<Button-1>", self.on_canvas_click)
+        self.canvas.bind("<B1-Motion>", self.on_canvas_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.on_canvas_release)
         self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
         self.canvas.bind("<Control-MouseWheel>", self.on_ctrl_mouse_wheel)
         self.canvas.bind("<Double-Button-1>", self.on_canvas_double_click)

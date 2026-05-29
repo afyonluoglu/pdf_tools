@@ -77,6 +77,11 @@ class PDFViewer(
         self.current_search_index = 0
         self.annotations = []
         self.highlight_color = "#FFFF00"  # Sarı
+
+        # Vurgulama seçim, taşıma ve boyutlandırma durumu
+        self._selected_highlight_idx = -1
+        self._selection_handles = []
+        self._highlight_drag_data = None
         
         # Ayarlar dosyası
         settings_file="pdf_viewer_settings.json"

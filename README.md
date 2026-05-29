@@ -18,6 +18,21 @@ Python ile geliştirilmiş, modern CustomTkinter arayüzlü, kapsamlı bir PDF g
 
 ---
 
+## ✨ Güncellemeler:
+
+- 29.05.2026:
+
+  - Annotation'lar ".ann.json" uzantılı ayrı bir dosyada saklanabiliyor veya PDF içerisine gömülebiliyor. Ayrı dosyada saklanırsa, daha sonradan bu annotation'lar tekrar düzenlenebiliyor.
+
+  - Vrugulama annotation'larının üzerine tıklanarak konumu ve köşelerinden boyutu değiştirilebiliyor.
+
+  - Vurgulama annotation'larının arkaplan rengi, fare sağ tuş ile açılan menüden değiştirilebiliyor.
+
+
+
+
+---
+
 ## ✨ Özellikler
 
 ### 📄 PDF Görüntüleme

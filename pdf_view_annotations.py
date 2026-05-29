@@ -356,7 +356,12 @@ class AnnotationMixin:
                         activebackground="#1F6AA5"
                        )
         ann_type = ann.get('type', '')
-        type_labels = {'note': '📝 Not', 'bookmark': '⭐ İşaret', 'link': '🔗 Link'}
+        type_labels = {
+            'note': '📝 Not',
+            'bookmark': '⭐ İşaret',
+            'link': '🔗 Link',
+            'highlight': '🖍️ Vurgulama',
+        }
         menu.add_command(
             label=type_labels.get(ann_type, 'Annotation'),
             state='disabled'
@@ -366,6 +371,11 @@ class AnnotationMixin:
             menu.add_command(
                 label="✏️ İçeriği Değiştir",
                 command=lambda: self._edit_annotation(ann, idx)
+            )
+        if ann_type == 'highlight':
+            menu.add_command(
+                label="🎨 Rengi Değiştir",
+                command=lambda: self._change_highlight_color(ann, idx)
             )
         menu.add_command(
             label="🗑️ Bu annotation'ı Sil",
@@ -380,6 +390,28 @@ class AnnotationMixin:
         finally:
             menu.grab_release()
         # print(f"DEBUG: Bağlam menüsü — idx={idx}, tür={ann_type}")
+
+    def _change_highlight_color(self, ann, idx):
+        """Highlight annotation rengini değiştir"""
+        current_color = ann.get('color', '#FFFF00')
+        new_color = colorchooser.askcolor(color=current_color, parent=self.root,
+                                          title="Vurgulama Rengi Seç")[1]
+        if new_color:
+            ann['color'] = new_color
+            cid = ann.get('canvas_id')
+            if cid:
+                try:
+                    self.canvas.itemconfig(cid, fill=new_color)
+                    # Seçim handle'ı varsa yenile
+                    if getattr(self, '_selected_highlight_idx', -1) == idx:
+                        coords = ann.get('coordinates', {})
+                        self._draw_selection_handles_coords(
+                            coords.get('x1', 0), coords.get('y1', 0),
+                            coords.get('x2', 0), coords.get('y2', 0)
+                        )
+                except Exception as e:
+                    print(f"DEBUG: Highlight renk güncelleme canvas hatası: {e}")
+            print(f"DEBUG: Highlight rengi değiştirildi — idx={idx}, yeni renk={new_color}")
 
     def _edit_annotation(self, ann, idx):
         """Not veya link annotation'ını düzenle"""
@@ -472,13 +504,197 @@ class AnnotationMixin:
     def on_canvas_click(self, event):
         """Canvas tıklama olayını işle"""
         if hasattr(self, 'highlight_mode') and self.highlight_mode:
-            # Vurgulama modunda ise, tıklanan konumu işaretle
             x = self.canvas.canvasx(event.x)
             y = self.canvas.canvasy(event.y)
-            
-            # Basit vurgulama (gerçek PDF annotation'ı için daha karmaşık kod gerekir)
             self.canvas.create_oval(
                 x-5, y-5, x+5, y+5,
                 fill=self.highlight_color, outline="",
                 tags="manual_highlight"
             )
+            return
+
+        cx = self.canvas.canvasx(event.x)
+        cy = self.canvas.canvasy(event.y)
+
+        # Önce seçim handle üzerinde mi kontrol et (resize başlatma)
+        resize_handle = self._get_resize_handle_at(cx, cy)
+        if resize_handle is not None:
+            idx = self._selected_highlight_idx
+            if idx >= 0:
+                ann = self.annotation_manager.annotations[idx]
+                coords = ann.get('coordinates', {})
+                self._highlight_drag_data = {
+                    'type': 'resize',
+                    'handle': resize_handle,
+                    'start_x': cx, 'start_y': cy,
+                    'orig_x1': coords.get('x1', 0), 'orig_y1': coords.get('y1', 0),
+                    'orig_x2': coords.get('x2', 0), 'orig_y2': coords.get('y2', 0),
+                }
+            return
+
+        # Highlight annotation üzerinde mi?
+        ann, idx = self._find_highlight_at(cx, cy)
+        if ann is not None:
+            self._select_highlight(ann, idx)
+            coords = ann.get('coordinates', {})
+            self._highlight_drag_data = {
+                'type': 'move',
+                'start_x': cx, 'start_y': cy,
+                'orig_x1': coords.get('x1', 0), 'orig_y1': coords.get('y1', 0),
+                'orig_x2': coords.get('x2', 0), 'orig_y2': coords.get('y2', 0),
+            }
+        else:
+            # Boş yere tıklandı: seçimi kaldır
+            self._deselect_highlight()
+            self._highlight_drag_data = None
+
+    def on_canvas_drag(self, event):
+        """Canvas drag olayı — highlight taşıma/boyutlandırma"""
+        if not getattr(self, '_highlight_drag_data', None):
+            return
+
+        cx = self.canvas.canvasx(event.x)
+        cy = self.canvas.canvasy(event.y)
+        drag = self._highlight_drag_data
+        idx = getattr(self, '_selected_highlight_idx', -1)
+        if idx < 0 or idx >= len(self.annotation_manager.annotations):
+            return
+
+        ann = self.annotation_manager.annotations[idx]
+        cid = ann.get('canvas_id')
+        if not cid:
+            return
+
+        if drag['type'] == 'move':
+            dx = cx - drag['start_x']
+            dy = cy - drag['start_y']
+            x1 = drag['orig_x1'] + dx
+            y1 = drag['orig_y1'] + dy
+            x2 = drag['orig_x2'] + dx
+            y2 = drag['orig_y2'] + dy
+            self.canvas.coords(cid, x1, y1, x2, y2)
+            self._draw_selection_handles_coords(x1, y1, x2, y2)
+
+        elif drag['type'] == 'resize':
+            handle = drag['handle']
+            x1, y1 = drag['orig_x1'], drag['orig_y1']
+            x2, y2 = drag['orig_x2'], drag['orig_y2']
+            if 'left' in handle:
+                x1 = cx
+            if 'right' in handle:
+                x2 = cx
+            if 'top' in handle:
+                y1 = cy
+            if 'bottom' in handle:
+                y2 = cy
+            rx1, ry1 = min(x1, x2), min(y1, y2)
+            rx2, ry2 = max(x1, x2), max(y1, y2)
+            self.canvas.coords(cid, rx1, ry1, rx2, ry2)
+            self._draw_selection_handles_coords(rx1, ry1, rx2, ry2)
+
+    def on_canvas_release(self, event):
+        """Canvas button release — drag/resize işlemini tamamla"""
+        drag = getattr(self, '_highlight_drag_data', None)
+        if not drag:
+            return
+
+        idx = getattr(self, '_selected_highlight_idx', -1)
+        if idx < 0 or idx >= len(self.annotation_manager.annotations):
+            self._highlight_drag_data = None
+            return
+
+        ann = self.annotation_manager.annotations[idx]
+        coords = ann.get('coordinates', {})
+        cid = ann.get('canvas_id')
+
+        if cid:
+            raw = self.canvas.coords(cid)
+            if len(raw) == 4:
+                coords['x1'], coords['y1'], coords['x2'], coords['y2'] = raw
+                if drag['type'] == 'move':
+                    print(f"DEBUG: Highlight taşındı — idx={idx}, yeni koordinatlar: {coords}")
+                else:
+                    print(f"DEBUG: Highlight boyutu değiştirildi — idx={idx}, yeni koordinatlar: {coords}")
+
+        self._highlight_drag_data = None
+        # Seçim handle'larını güncelle
+        self._select_highlight(ann, idx)
+
+    # ── Highlight seçim yardımcı metodları ───────────────────────────────
+
+    def _find_highlight_at(self, cx, cy):
+        """Canvas koordinatında highlight annotation varsa (ann, idx) döndür"""
+        items = self.canvas.find_overlapping(cx - 3, cy - 3, cx + 3, cy + 3)
+        for item in items:
+            tags = self.canvas.gettags(item)
+            if 'annotation_display' in tags:
+                for tag in tags:
+                    if tag.startswith("ann_idx_"):
+                        try:
+                            idx = int(tag[8:])
+                            anns = self.annotation_manager.annotations
+                            if 0 <= idx < len(anns) and anns[idx].get('type') == 'highlight':
+                                return anns[idx], idx
+                        except (ValueError, IndexError):
+                            pass
+        return None, -1
+
+    def _get_resize_handle_at(self, cx, cy):
+        """Verilen koordinatta resize handle var mı kontrol et; handle adı döndür ya da None"""
+        items = self.canvas.find_overlapping(cx - 8, cy - 8, cx + 8, cy + 8)
+        for item in items:
+            for tag in self.canvas.gettags(item):
+                if tag.startswith("sel_handle_"):
+                    return tag[11:]  # 'topleft', 'topright', 'bottomleft', 'bottomright'
+        return None
+
+    def _select_highlight(self, ann, idx):
+        """Highlight annotation'ı seç, seçim göstergelerini çiz"""
+        self._deselect_highlight()
+        self._selected_highlight_idx = idx
+        coords = ann.get('coordinates', {})
+        x1 = coords.get('x1', 0)
+        y1 = coords.get('y1', 0)
+        x2 = coords.get('x2', 0)
+        y2 = coords.get('y2', 0)
+        self._draw_selection_handles_coords(x1, y1, x2, y2)
+
+    def _draw_selection_handles_coords(self, x1, y1, x2, y2):
+        """Seçim kenarlığı ve köşe handle'larını çiz"""
+        for h in getattr(self, '_selection_handles', []):
+            try:
+                self.canvas.delete(h)
+            except Exception:
+                pass
+        self._selection_handles = []
+
+        border = self.canvas.create_rectangle(
+            x1, y1, x2, y2,
+            outline='#0078D4', width=2, dash=(5, 3),
+            tags='sel_highlight'
+        )
+        self._selection_handles.append(border)
+
+        hs = 6
+        corners = [
+            ('topleft', x1, y1), ('topright', x2, y1),
+            ('bottomleft', x1, y2), ('bottomright', x2, y2)
+        ]
+        for name, hx, hy in corners:
+            h = self.canvas.create_rectangle(
+                hx - hs, hy - hs, hx + hs, hy + hs,
+                fill='white', outline='#0078D4', width=2,
+                tags=(f'sel_handle_{name}', 'sel_handle')
+            )
+            self._selection_handles.append(h)
+
+    def _deselect_highlight(self):
+        """Seçili highlight'ın seçimini kaldır, göstergeleri sil"""
+        for h in getattr(self, '_selection_handles', []):
+            try:
+                self.canvas.delete(h)
+            except Exception:
+                pass
+        self._selection_handles = []
+        self._selected_highlight_idx = -1
+
