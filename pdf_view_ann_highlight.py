@@ -113,9 +113,15 @@ class HighlightTool:
                     x1, y1, x2, y2, highlight_color
                 )
 
-                # Canvas ID'yi annotation'a ekle
+                # Canvas ID ve indeks etiketini annotation'a ekle
                 if annotation:
                     annotation['canvas_id'] = highlight_id
+                    anns = getattr(self.pdf_viewer.annotation_manager, 'annotations', [])
+                    idx = len(anns) - 1
+                    self.pdf_viewer.canvas.itemconfig(
+                        highlight_id,
+                        tags=("highlight", "annotation_display", f"ann_idx_{idx}")
+                    )
 
         except Exception as e:
             print(f"Add highlight rect hatası: {e}")

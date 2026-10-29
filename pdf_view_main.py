@@ -2,7 +2,15 @@
 Professional PDF Viewer - Ana Giriş Modülü
 Geliştirme        : Mart - 2026
 Yazan             : Dr. Mustafa Afyonluoğlu
+
+2026 10 17: 
+   MS-tts güncellemesi için pasket şu şekilde güncellenmeli:
+   python.exe -m pip install --upgrade edge-tts
+
 """
+
+
+
 
 import customtkinter as ctk
 import fitz  # PyMuPDF
@@ -28,6 +36,7 @@ from pdf_view_text_extraction import TextExtractionMixin
 # Annotation manager importları
 from pdf_view_ann_core import AnnotationManager
 from pdf_view_ann_highlight import HighlightTool
+from pd_inpage_text_editor import InPageTextEditor
 
 # Global exception handler'ı ayarla
 setup_global_exception_handler()
@@ -95,6 +104,7 @@ class PDFViewer(
         # Annotation manager ve vurgulama aracını başlat
         self.annotation_manager = AnnotationManager(self)
         self.highlight_tool = HighlightTool(self)
+        self.inpage_text_editor = InPageTextEditor(self)
         
         # UI ve keybinding'leri kur (mixin'lerden)
         self.setup_ui()
@@ -102,6 +112,16 @@ class PDFViewer(
         
         # print("DEBUG: PDFViewer başlatıldı")
     
+    def toggle_inpage_text_edit_mode(self):
+        """Sayfa içi metin düzenleme modunu aç/kapat"""
+        if hasattr(self, 'inpage_text_editor'):
+            self.inpage_text_editor.toggle()
+
+    def undo_inpage_text_edit(self):
+        """Son yapılan metin düzenlemesini geri al (Ctrl+Z)"""
+        if hasattr(self, 'inpage_text_editor'):
+            self.inpage_text_editor.undo()
+
     def run(self):
         """Uygulamayı çalıştır"""
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)

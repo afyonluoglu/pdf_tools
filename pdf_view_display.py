@@ -102,7 +102,7 @@ class DisplayMixin:
             
             # Zoom ve rotasyon matrisi
             mat = fitz.Matrix(self.zoom_level, self.zoom_level).prerotate(self.rotation)
-            pix = page.get_pixmap(matrix=mat)
+            pix = page.get_pixmap(matrix=mat, annots=False)
             
             # Canvas boyutlarını kaydet (koordinat dönüşümü için)
             self.current_page_width = pix.width
@@ -132,31 +132,40 @@ class DisplayMixin:
             messagebox.showerror("Hata", f"Sayfa görüntülenirken hata oluştu:\n{str(e)}")
     
     def show_highlights(self):
-        """Mevcut sayfadaki annotation_manager annotation'larını göster.
-        Fitz native annotation'lar load_pdf_annotations() tarafından ayrıca yüklenir."""
+        """Mevcut sayfadaki annotation_manager annotation'larını göster."""
         if not self.pdf_document:
             return
         
         try:
             # Kendi annotation manager'daki annotation'ları göster
             if hasattr(self, 'annotation_manager'):
+                from pd_annot_sync import calculate_canvas_coords
                 for i, annotation in enumerate(self.annotation_manager.annotations):
                     if annotation["page"] == self.current_page:
                         idx_tag = f"ann_idx_{i}"
                         if annotation["type"] == "highlight":
-                            coords = annotation.get("coordinates", {})
-                            if coords:
+                            pdf_rect = annotation.get('pdf_rect')
+                            if pdf_rect:
+                                x1, y1, x2, y2 = calculate_canvas_coords(
+                                    pdf_rect, self.zoom_level, self.rotation
+                                )
+                                annotation['coordinates'] = {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2}
+                            else:
+                                coords = annotation.get("coordinates", {})
                                 x1, y1 = coords.get('x1', 0), coords.get('y1', 0)
                                 x2, y2 = coords.get('x2', 100), coords.get('y2', 100)
-                                color = annotation.get('color', '#FFFF00')
-                                cid = self.canvas.create_rectangle(
-                                    x1, y1, x2, y2,
-                                    fill=color,
-                                    stipple="gray50",
-                                    outline="",
-                                    tags=("annotation_display", idx_tag)
-                                )
-                                annotation['canvas_id'] = cid
+                            color = annotation.get('color', '#FFFF00')
+                            stroke_color = annotation.get('stroke_color', '')
+                            border_width = int(round(float(annotation.get('border_width', 1.5)))) if stroke_color else 1
+                            cid = self.canvas.create_rectangle(
+                                x1, y1, x2, y2,
+                                fill=color,
+                                stipple="gray50",
+                                outline=stroke_color if stroke_color else "",
+                                width=border_width,
+                                tags=("annotation_display", idx_tag, "highlight")
+                            )
+                            annotation['canvas_id'] = cid
                         elif annotation["type"] == "note":
                             pos = annotation["position"]
                             mat = fitz.Matrix(self.zoom_level, self.zoom_level).prerotate(self.rotation)
@@ -234,8 +243,16 @@ class DisplayMixin:
                 except:
                     return pdf_x, pdf_y
             
+            # Zaten annotation_manager içinde olanları mükerrer çizme
+            managed_xrefs = {
+                a.get('xref') for a in getattr(self.annotation_manager, 'annotations', [])
+                if a.get('xref') and a.get('page') == self.current_page
+            }
+
             # PDF'deki annotation'ları al
             for annot in page.annots():
+                if annot.xref in managed_xrefs:
+                    continue
                 try:
                     annot_type = annot.type[1]  # Annotation tipi
                     rect = annot.rect

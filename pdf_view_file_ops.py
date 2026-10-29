@@ -119,8 +119,14 @@ class FileOperationsMixin:
         else:
             save_mode = "json"  # Annotation yoksa varsayılan
 
+        current_name = getattr(self.pdf_document, 'name', '')
+        init_dir = os.path.dirname(current_name) if current_name else None
+        init_file = os.path.basename(current_name) if current_name else "document.pdf"
+
         file_path = filedialog.asksaveasfilename(
             title="PDF'yi Kaydet",
+            initialdir=init_dir,
+            initialfile=init_file,
             defaultextension=".pdf",
             filetypes=[("PDF dosyaları", "*.pdf")]
         )
@@ -128,10 +134,34 @@ class FileOperationsMixin:
         if not file_path:
             return
 
+        # Mevcut açık olan dosyanın üzerine mi yazılıyor kontrol et
+        if self._is_same_file(file_path, current_name):
+            confirm = messagebox.askyesno(
+                "Mevcut Dosyayı Güncelle",
+                f"'{os.path.basename(file_path)}' açık olan mevcut dosyanızdır.\n\n"
+                f"Değişikliklerin doğrudan bu dosyanın üzerine kaydedilmesini onaylıyor musunuz?",
+                icon="warning",
+                parent=self.root
+            )
+            if not confirm:
+                return
+
         if save_mode == "json":
             self._save_with_json_sidecar(file_path)
         else:
             self._save_with_embedded_annotations(file_path)
+
+    @staticmethod
+    def _is_same_file(path1, path2):
+        """İki dosya yolunun aynı fiziksel dosyayı gösterip göstermediğini kontrol eder"""
+        if not path1 or not path2:
+            return False
+        try:
+            if os.path.exists(path1) and os.path.exists(path2):
+                return os.path.samefile(path1, path2)
+        except Exception:
+            pass
+        return os.path.abspath(path1).lower() == os.path.abspath(path2).lower()
 
     def _ask_save_mode(self):
         """Kaydetme yöntemi seçme diyaloğunu göster. 'json', 'embed' veya None döndürür."""
@@ -218,8 +248,26 @@ class FileOperationsMixin:
     def _save_with_json_sidecar(self, file_path):
         """PDF'yi kaydet; annotation'ları .ann.json sidecar dosyasına yaz."""
         try:
-            self.pdf_document.save(file_path, garbage=4, deflate=True)
+            current_name = getattr(self.pdf_document, 'name', '')
+            is_same = self._is_same_file(file_path, current_name)
+
+            if is_same:
+                # Orijinal dosyanın üzerine güvenli kaydetme (belleğe alıp dosyayı kapatarak)
+                pdf_bytes = self.pdf_document.tobytes(garbage=4, deflate=True)
+                self.pdf_document.close()
+                with open(file_path, 'wb') as f:
+                    f.write(pdf_bytes)
+                self.pdf_document = fitz.open(file_path)
+            else:
+                self.pdf_document.save(file_path, garbage=4, deflate=True)
+
             print(f"DEBUG [save_pdf/json]: PDF kaydedildi → {os.path.basename(file_path)}")
+
+            if hasattr(self, 'is_modified'):
+                self.is_modified = False
+
+            if hasattr(self, 'status_label'):
+                self.status_label.configure(text=f"✓ Kaydedildi: {os.path.basename(file_path)}")
 
             if hasattr(self, 'annotation_manager') and self.annotation_manager.annotations:
                 base = os.path.splitext(file_path)[0]
@@ -247,11 +295,16 @@ class FileOperationsMixin:
     def _save_with_embedded_annotations(self, file_path):
         """Annotation'ları PDF'e standart PDF annotation olarak göm ve kaydet."""
         import fitz
+        tmp_path = file_path + ".tmp_embed.pdf"
         try:
-            # Çalışmak için PDF'in bir kopyasını aç (orijinal doc değişmesin)
-            import tempfile, shutil
-            tmp_path = file_path + ".tmp_embed.pdf"
-            self.pdf_document.save(tmp_path, garbage=4, deflate=True)
+            current_name = getattr(self.pdf_document, 'name', '')
+            is_same = self._is_same_file(file_path, current_name)
+
+            # Geçici dosyaya PDF baytlarını aktar
+            pdf_bytes = self.pdf_document.tobytes(garbage=4, deflate=True)
+            with open(tmp_path, 'wb') as f:
+                f.write(pdf_bytes)
+
             embed_doc = fitz.open(tmp_path)
             print(f"DEBUG [save_pdf/embed]: Geçici PDF oluşturuldu → {os.path.basename(tmp_path)}")
 
@@ -260,6 +313,11 @@ class FileOperationsMixin:
 
             for ann in annotations:
                 try:
+                    if ann.get('xref'):
+                        # Zaten PDF belgesinde mevcut ve güncellenmiş durumda
+                        embedded_count += 1
+                        continue
+
                     page_num = ann.get('page', 0)
                     if page_num < 0 or page_num >= len(embed_doc):
                         continue
@@ -327,10 +385,27 @@ class FileOperationsMixin:
                 except Exception as ann_err:
                     print(f"DEBUG [save_pdf/embed]: Annotation gömme hatası ({ann.get('type','?')}): {ann_err}")
 
-            embed_doc.save(file_path, garbage=4, deflate=True)
+            final_bytes = embed_doc.tobytes(garbage=4, deflate=True)
             embed_doc.close()
-            os.remove(tmp_path)
+
+            if is_same:
+                self.pdf_document.close()
+                with open(file_path, 'wb') as f:
+                    f.write(final_bytes)
+                self.pdf_document = fitz.open(file_path)
+            else:
+                with open(file_path, 'wb') as f:
+                    f.write(final_bytes)
+
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
             print(f"DEBUG [save_pdf/embed]: {embedded_count} annotation gömüldü → {os.path.basename(file_path)}")
+
+            if hasattr(self, 'is_modified'):
+                self.is_modified = False
+
+            if hasattr(self, 'status_label'):
+                self.status_label.configure(text=f"✓ Kaydedildi: {os.path.basename(file_path)}")
 
             # Eğer aynı isimli .ann.json sidecar varsa sil:
             # PDF içine gömdük; yoksa yeniden açıldığında çift çizim oluşur.
@@ -436,30 +511,42 @@ class FileOperationsMixin:
                 pass
     
     def load_existing_annotations(self):
-        """PDF ile aynı klasördeki JSON sidecar dosyasından annotation'ları yükle"""
+        """PDF ile aynı klasördeki JSON sidecar dosyasından veya doğrudan PDF'ten gömülü annotation'ları yükle"""
         if not self.pdf_document:
             return
             
         try:
-            pdf_path = self.pdf_document.name
-            if not pdf_path:
-                return
+            from pd_annot_sync import load_embedded_annotations
             
-            base = os.path.splitext(pdf_path)[0]
-            ann_path = base + '.ann.json'
+            # 1. PDF içindeki gömülü (native) annotation'ları yükle
+            embedded_anns = load_embedded_annotations(self.pdf_document)
             
-            if os.path.exists(ann_path):
-                with open(ann_path, 'r', encoding='utf-8') as f:
-                    annotations = json.load(f)
-                
-                for ann in annotations:
-                    ann.pop('canvas_id', None)  # Eski canvas ID'leri temizle
-                    self.annotation_manager.add_annotation(ann)
-                
-                # print(f"DEBUG: {len(annotations)} annotation JSON'dan yüklendi: {os.path.basename(ann_path)}")
-            else:
-                # print(f"DEBUG: Sidecar bulunamadı, annotation yok: {os.path.basename(pdf_path)}")
-                pass
+            # 2. Varsa JSON sidecar dosyasını da kontrol et
+            pdf_path = getattr(self.pdf_document, 'name', '')
+            sidecar_anns = []
+            if pdf_path:
+                base = os.path.splitext(pdf_path)[0]
+                ann_path = base + '.ann.json'
+                if os.path.exists(ann_path):
+                    try:
+                        with open(ann_path, 'r', encoding='utf-8') as f:
+                            sidecar_anns = json.load(f)
+                    except Exception as e:
+                        print(f"DEBUG: Sidecar JSON okuma hatası: {e}")
+
+            # 3. İki kaynağı birleştir (aynı xref'e sahip olanları mükerrer ekleme)
+            existing_xrefs = {a.get('xref') for a in embedded_anns if a.get('xref')}
+            for ann in sidecar_anns:
+                ann.pop('canvas_id', None)
+                if ann.get('xref') and ann.get('xref') in existing_xrefs:
+                    continue
+                embedded_anns.append(ann)
+
+            for ann in embedded_anns:
+                ann.pop('canvas_id', None)
+                self.annotation_manager.add_annotation(ann)
+
+            print(f"DEBUG: Toplam {len(self.annotation_manager.annotations)} annotation başarıyla yüklendi.")
                 
         except Exception as e:
             print(f"Annotation yükleme hatası: {e}")

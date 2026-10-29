@@ -14,34 +14,20 @@ class AnnotationMixin:
     
     def on_canvas_motion(self, event):
         """Canvas üzerinde mouse hareketi"""
-        # Tooltip gösterme (basit versiyon)
-        x = self.canvas.canvasx(event.x)
-        y = self.canvas.canvasy(event.y)
-        
-        # Mouse altındaki annotation'ları kontrol et
-        items = self.canvas.find_overlapping(x-5, y-5, x+5, y+5)
-        for item in items:
+        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        for item in self.canvas.find_overlapping(x-5, y-5, x+5, y+5):
             tags = self.canvas.gettags(item)
             if "custom_note" in tags or "note_annotation" in tags:
-                # Note için tooltip
-                note_content = self.get_note_content_at_position(x, y)
-                if note_content:
-                    self.show_tooltip(event.x_root, event.y_root, f"Not: {note_content[:50]}...")
-                else:
-                    self.show_tooltip(event.x_root, event.y_root, "Not - Çift tıklayın detayları görmek için")
+                nc = self.get_note_content_at_position(x, y)
+                self.show_tooltip(event.x_root, event.y_root, f"Not: {nc[:50]}..." if nc else "Not - Çift tıklayın")
                 return
             elif "custom_bookmark" in tags:
                 self.show_tooltip(event.x_root, event.y_root, "İşaret - Çift tıklayın detayları görmek için")
                 return
             elif "custom_link" in tags:
-                link_url = self.get_link_url_at_position(x, y)
-                if link_url:
-                    self.show_tooltip(event.x_root, event.y_root, f"Link: {link_url}")
-                else:
-                    self.show_tooltip(event.x_root, event.y_root, "Link - Çift tıklayın açmak için")
+                lu = self.get_link_url_at_position(x, y)
+                self.show_tooltip(event.x_root, event.y_root, f"Link: {lu}" if lu else "Link - Çift tıklayın açmak için")
                 return
-                
-        # Tooltip'i gizle
         self.hide_tooltip()
         
     def show_tooltip(self, x, y, text):
@@ -49,22 +35,17 @@ class AnnotationMixin:
         try:
             if self.tooltip_window:
                 self.tooltip_window.destroy()
-                
             self.tooltip_window = tk.Toplevel(self.root)
             self.tooltip_window.wm_overrideredirect(True)
             self.tooltip_window.wm_geometry(f"+{x+10}+{y+10}")
-            
             label = tk.Label(self.tooltip_window, text=text, 
                             background="lightyellow", relief="solid", borderwidth=1,
                             font=("Arial", 12))
             label.pack()
-            
-            # Otomatik gizleme
             self.root.after(3000, self.hide_tooltip)
-            
         except Exception as e:
             print(f"Tooltip gösterme hatası: {e}")
-        
+
     def hide_tooltip(self):
         """Tooltip'i gizle"""
         try:
@@ -73,20 +54,28 @@ class AnnotationMixin:
                 self.tooltip_window = None
         except Exception as e:
             print(f"Tooltip gizleme hatası: {e}")
-            
+
     def _annotation_at_canvas_pos(self, cx, cy):
         """Canvas koordinatında annotation varsa (ann, idx) döndür, yoksa (None, -1)"""
-        items = self.canvas.find_overlapping(cx - 15, cy - 15, cx + 15, cy + 15)
-        for item in items:
+        anns = getattr(self.annotation_manager, 'annotations', [])
+        for item in self.canvas.find_overlapping(cx - 15, cy - 15, cx + 15, cy + 15):
             for tag in self.canvas.gettags(item):
                 if tag.startswith("ann_idx_"):
                     try:
                         idx = int(tag[8:])
-                        anns = self.annotation_manager.annotations
                         if 0 <= idx < len(anns):
                             return anns[idx], idx
-                    except (ValueError, IndexError):
+                    except Exception:
                         pass
+        # Geometrik koordinat eşleşmesi (yeni çizilen veya etiketsiz vurgulamalar için)
+        cur_p = getattr(self, 'current_page', 0)
+        for idx, ann in enumerate(anns):
+            if ann.get('page') == cur_p and ann.get('type') == 'highlight':
+                c = ann.get('coordinates', {})
+                x1, x2 = min(c.get('x1', 0), c.get('x2', 0)), max(c.get('x1', 0), c.get('x2', 0))
+                y1, y2 = min(c.get('y1', 0), c.get('y2', 0)), max(c.get('y1', 0), c.get('y2', 0))
+                if (x1 - 5) <= cx <= (x2 + 5) and (y1 - 5) <= cy <= (y2 + 5):
+                    return ann, idx
         return None, -1
 
     def on_canvas_double_click(self, event):
@@ -101,48 +90,42 @@ class AnnotationMixin:
         if ann_type == 'note':
             text = ann.get('text', '(boş not)')
             messagebox.showinfo(f"📝 Not — Sayfa {page_no}", text, parent=self.root)
-            # print(f"DEBUG: Not çift tık gösterildi — idx={idx}, sayfa={page_no}")
         elif ann_type == 'link':
             url = ann.get('url', '')
             if url:
                 import webbrowser
                 webbrowser.open(url)
-                # print(f"DEBUG: Link tarayıcıda açıldı — {url}")
             else:
                 messagebox.showinfo("🔗 Link", "URL bulunamadı.", parent=self.root)
+        elif ann_type == 'highlight':
+            from pd_vector_box_dialog import VectorBoxPropertiesDialog
+            VectorBoxPropertiesDialog(self, ann, idx)
         elif ann_type == 'bookmark':
             label = ann.get('text', '')
             msg = f"Sayfa {page_no}" + (f": {label}" if label else "")
             messagebox.showinfo("⭐ İşaret", msg, parent=self.root)
-            # print(f"DEBUG: Bookmark çift tık gösterildi — sayfa={page_no}")
-                
+
     def get_note_content_at_position(self, x, y):
         """Belirtilen pozisyondaki not içeriğini al"""
         if not hasattr(self, 'annotation_manager'):
             return None
-            
-        # Canvas koordinatlarını PDF koordinatlarına çevir
         mat = fitz.Matrix(self.zoom_level, self.zoom_level).prerotate(self.rotation)
         inv_mat = ~mat
         pdf_point = fitz.Point(x, y) * inv_mat
-        
         for annotation in self.annotation_manager.annotations:
             if annotation["page"] == self.current_page and annotation["type"] == "note":
                 pos = annotation["position"]
-                # Yakınlık kontrolü (20 piksel tolerans)
                 if abs(pdf_point.x - pos["x"]) < 20 and abs(pdf_point.y - pos["y"]) < 20:
                     return annotation["text"]
         return None
-        
+
     def get_link_url_at_position(self, x, y):
         """Belirtilen pozisyondaki link URL'sini al"""
         if not hasattr(self, 'annotation_manager'):
             return None
-            
         mat = fitz.Matrix(self.zoom_level, self.zoom_level).prerotate(self.rotation)
         inv_mat = ~mat
         pdf_point = fitz.Point(x, y) * inv_mat
-        
         for annotation in self.annotation_manager.annotations:
             if annotation["page"] == self.current_page and annotation["type"] == "link":
                 pos = annotation["position"]
@@ -340,56 +323,54 @@ class AnnotationMixin:
         dlg.bind("<Escape>", lambda e: dlg.destroy())
 
     def on_canvas_right_click(self, event):
-        """Sağ tık: annotation varsa bağlam menüsü göster"""
+        """Sağ tık: annotation varsa onun bağlam menüsünü, yoksa vektör kutu bağlam menüsünü göster"""
         cx = self.canvas.canvasx(event.x)
         cy = self.canvas.canvasy(event.y)
         ann, idx = self._annotation_at_canvas_pos(cx, cy)
         if ann is not None:
             self._show_annotation_context_menu(event, ann, idx)
+            return
+
+        if getattr(self, 'pdf_document', None) and hasattr(self, 'current_page'):
+            try:
+                page = self.pdf_document[self.current_page]
+                mat = fitz.Matrix(self.zoom_level, self.zoom_level).prerotate(self.rotation)
+                pdf_pt = fitz.Point(cx, cy) * ~mat
+                from pd_vector_boxes import find_vector_box_at, show_vector_box_context_menu
+                v_box = find_vector_box_at(page, pdf_pt.x, pdf_pt.y)
+                if v_box:
+                    show_vector_box_context_menu(self, event, v_box)
+            except Exception as e:
+                print(f"DEBUG: Vektör sağ tık hatası: {e}")
 
     def _show_annotation_context_menu(self, event, ann, idx):
         """Annotation için sağ-tık bağlam menüsü"""
-
-        menu = tk.Menu(self.root, tearoff=0,
-                       background="#333333", 
-                        foreground="white", 
-                        activebackground="#1F6AA5"
-                       )
+        menu = tk.Menu(self.root, tearoff=0, background="#333333", foreground="white", activebackground="#1F6AA5")
         ann_type = ann.get('type', '')
-        type_labels = {
-            'note': '📝 Not',
-            'bookmark': '⭐ İşaret',
-            'link': '🔗 Link',
-            'highlight': '🖍️ Vurgulama',
-        }
-        menu.add_command(
-            label=type_labels.get(ann_type, 'Annotation'),
-            state='disabled'
-        )
+        type_labels = {'note': '📝 Not', 'bookmark': '⭐ İşaret', 'link': '🔗 Link', 'highlight': '🖍️ Vurgulama'}
+        menu.add_command(label=type_labels.get(ann_type, 'Annotation'), state='disabled')
         menu.add_separator()
         if ann_type in ('note', 'link'):
-            menu.add_command(
-                label="✏️ İçeriği Değiştir",
-                command=lambda: self._edit_annotation(ann, idx)
-            )
+            menu.add_command(label="✏️ İçeriği Değiştir", command=lambda: self._edit_annotation(ann, idx))
         if ann_type == 'highlight':
+            from pd_vector_box_dialog import VectorBoxPropertiesDialog
+            menu.add_command(label="⚙️ Kutu Özellikleri (Renk, Çerçeve, Köşe...)", command=lambda: VectorBoxPropertiesDialog(self, ann, idx))
+            menu.add_command(label="🎨 Dolgu Rengini Değiştir", command=lambda: self._change_highlight_color(ann, idx))
+            if ann.get('stroke_color') or ann.get('is_vector_origin'):
+                from pd_vector_boxes import change_stroke_color_action
+                menu.add_command(label="🔲 Çerçeve Rengini Değiştir", command=lambda: change_stroke_color_action(self, ann, idx))
+            from pd_vector_boxes import bake_annotation_action
             menu.add_command(
-                label="🎨 Rengi Değiştir",
-                command=lambda: self._change_highlight_color(ann, idx)
+                label="📌 Sabitle / Vektörel Çizime Dönüştür (Orijinal Görünüm)",
+                command=lambda: bake_annotation_action(self, ann, idx)
             )
-        menu.add_command(
-            label="🗑️ Bu annotation'ı Sil",
-            command=lambda: self._delete_annotation_at(idx)
-        )
+        menu.add_command(label="🗑️ Bu annotation'ı Sil", command=lambda: self._delete_annotation_at(idx))
 
-        list_font = ("Segoe UI", 13) 
-        menu.config(font=list_font)
-
+        menu.config(font=("Segoe UI", 12))
         try:
             menu.tk_popup(event.x_root, event.y_root)
         finally:
             menu.grab_release()
-        # print(f"DEBUG: Bağlam menüsü — idx={idx}, tür={ann_type}")
 
     def _change_highlight_color(self, ann, idx):
         """Highlight annotation rengini değiştir"""
@@ -398,11 +379,15 @@ class AnnotationMixin:
                                           title="Vurgulama Rengi Seç")[1]
         if new_color:
             ann['color'] = new_color
+            try:
+                from pd_annot_sync import sync_update_color
+                sync_update_color(self.pdf_document, ann, new_color)
+            except Exception:
+                pass
             cid = ann.get('canvas_id')
             if cid:
                 try:
                     self.canvas.itemconfig(cid, fill=new_color)
-                    # Seçim handle'ı varsa yenile
                     if getattr(self, '_selected_highlight_idx', -1) == idx:
                         coords = ann.get('coordinates', {})
                         self._draw_selection_handles_coords(
@@ -411,7 +396,6 @@ class AnnotationMixin:
                         )
                 except Exception as e:
                     print(f"DEBUG: Highlight renk güncelleme canvas hatası: {e}")
-            print(f"DEBUG: Highlight rengi değiştirildi — idx={idx}, yeni renk={new_color}")
 
     def _edit_annotation(self, ann, idx):
         """Not veya link annotation'ını düzenle"""
@@ -486,10 +470,15 @@ class AnnotationMixin:
                     f"Bu {ann_type} annotation'ını silmek istediğinizden emin misiniz?",
                     parent=self.root):
                 return
+            try:
+                from pd_annot_sync import sync_delete_annotation
+                sync_delete_annotation(self.pdf_document, ann)
+            except Exception:
+                pass
             del self.annotation_manager.annotations[idx]
+            self._deselect_highlight()
             self.display_page()
-            self.status_label.configure(text=f"Annotation silindi.")
-            # print(f"DEBUG: Annotation silindi — idx={idx}, tür={ann_type}")
+            self.status_label.configure(text="Annotation silindi.")
         except (IndexError, Exception) as e:
             print(f"DEBUG: Annotation silme hatası — {e}")
 
@@ -544,9 +533,13 @@ class AnnotationMixin:
                 'orig_x2': coords.get('x2', 0), 'orig_y2': coords.get('y2', 0),
             }
         else:
-            # Boş yere tıklandı: seçimi kaldır
             self._deselect_highlight()
             self._highlight_drag_data = None
+            try:
+                from pd_vector_boxes import handle_vector_box_click
+                handle_vector_box_click(self, cx, cy)
+            except Exception:
+                pass
 
     def on_canvas_drag(self, event):
         """Canvas drag olayı — highlight taşıma/boyutlandırma"""
@@ -611,10 +604,11 @@ class AnnotationMixin:
             raw = self.canvas.coords(cid)
             if len(raw) == 4:
                 coords['x1'], coords['y1'], coords['x2'], coords['y2'] = raw
-                if drag['type'] == 'move':
-                    print(f"DEBUG: Highlight taşındı — idx={idx}, yeni koordinatlar: {coords}")
-                else:
-                    print(f"DEBUG: Highlight boyutu değiştirildi — idx={idx}, yeni koordinatlar: {coords}")
+                try:
+                    from pd_annot_sync import sync_update_rect
+                    sync_update_rect(self.pdf_document, ann, raw[0], raw[1], raw[2], raw[3], self.zoom_level, self.rotation)
+                except Exception as e:
+                    print(f"DEBUG: sync_update_rect hatası: {e}")
 
         self._highlight_drag_data = None
         # Seçim handle'larını güncelle
@@ -652,11 +646,8 @@ class AnnotationMixin:
         """Highlight annotation'ı seç, seçim göstergelerini çiz"""
         self._deselect_highlight()
         self._selected_highlight_idx = idx
-        coords = ann.get('coordinates', {})
-        x1 = coords.get('x1', 0)
-        y1 = coords.get('y1', 0)
-        x2 = coords.get('x2', 0)
-        y2 = coords.get('y2', 0)
+        c = ann.get('coordinates', {})
+        x1, y1, x2, y2 = c.get('x1', 0), c.get('y1', 0), c.get('x2', 0), c.get('y2', 0)
         self._draw_selection_handles_coords(x1, y1, x2, y2)
 
     def _draw_selection_handles_coords(self, x1, y1, x2, y2):
@@ -689,7 +680,7 @@ class AnnotationMixin:
             self._selection_handles.append(h)
 
     def _deselect_highlight(self):
-        """Seçili highlight'ın seçimini kaldır, göstergeleri sil"""
+        """Seçili highlight veya vektör kutu seçimini kaldır, göstergeleri sil"""
         for h in getattr(self, '_selection_handles', []):
             try:
                 self.canvas.delete(h)
@@ -697,4 +688,8 @@ class AnnotationMixin:
                 pass
         self._selection_handles = []
         self._selected_highlight_idx = -1
-
+        try:
+            self.canvas.delete("sel_vector_box")
+        except Exception:
+            pass
+        self._selected_vector_box = None

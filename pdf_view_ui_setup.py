@@ -177,6 +177,17 @@ class UISetupMixin:
         ctk.CTkButton(self.toolbar2, text="📝 Gelişmiş", width=100,
                      command=self.open_advanced_annotations).pack(side="left", padx=5, pady=CONST_PADY)
 
+        self.inpage_text_edit_btn = ctk.CTkButton(
+            self.toolbar2, text="✏️ Metin Düzenle", width=110,
+            command=self.toggle_inpage_text_edit_mode
+        )
+        self.inpage_text_edit_btn.pack(side="left", padx=5, pady=CONST_PADY)
+
+        ctk.CTkButton(
+            self.toolbar2, text="🔷 Vektör Kutuları", width=120,
+            command=self.open_vector_box_manager
+        ).pack(side="left", padx=5, pady=CONST_PADY)
+
         # Ayırıcı
         # ctk.CTkFrame(self.toolbar, width=2, height=50, fg_color="gray").pack(side="left", padx=10, pady=CONST_PADY)
 
@@ -232,6 +243,43 @@ class UISetupMixin:
         self.root.bind("<Next>", lambda e: self.next_page())  # Page Down
         self.root.bind("<F1>", lambda e: self.open_help())    # Yardım
         self.root.bind("<F2>", lambda e: self.open_quick_access())  # Hızlı Erişim
+        self.root.bind("<Control-e>", lambda e: self.toggle_inpage_text_edit_mode())
+        self.root.bind("<Control-z>", lambda e: self.undo_inpage_text_edit())
+        self.root.bind("<Delete>", lambda e: self.delete_selected_annotation())
+
+    def delete_selected_annotation(self):
+        """Seçili annotation veya vektörel kutu varsa sil (Delete tuşu kısayolu)"""
+        idx = getattr(self, '_selected_highlight_idx', -1)
+        if idx >= 0 and hasattr(self, '_delete_annotation_at'):
+            self._delete_annotation_at(idx)
+            return
+
+        vbox = getattr(self, '_selected_vector_box', None)
+        if vbox and getattr(self, 'pdf_document', None):
+            txt = vbox.get('text', '').replace('\n', ' ')[:30]
+            prompt = f"'{txt}' arkasındaki vektörel zemin kutusu silinsin mi?\nİçindeki yazılar korunacaktır." if txt else "Seçili vektörel arka plan kutusu silinsin mi? (Yazılar korunur)"
+            if messagebox.askyesno("Vektör Kutuyu Sil", prompt, parent=self.root):
+                try:
+                    from pd_vector_boxes import delete_vector_box
+                    page = self.pdf_document[self.current_page]
+                    delete_vector_box(page, vbox['rect'])
+                    self._selected_vector_box = None
+                    try:
+                        self.canvas.delete("sel_vector_box")
+                    except Exception:
+                        pass
+                    self.display_page()
+                    self.status_label.configure(text="Vektör kutusu silindi (yazı korundu).")
+                except Exception as e:
+                    messagebox.showerror("Hata", f"Silme hatası: {e}", parent=self.root)
+
+    def open_vector_box_manager(self):
+        """Vektörel arka plan kutuları yönetim penceresini aç"""
+        if not getattr(self, 'pdf_document', None):
+            messagebox.showwarning("Uyarı", "Lütfen önce bir PDF dosyası açın.", parent=self.root)
+            return
+        from pd_vector_boxes import VectorBoxManagerDialog
+        VectorBoxManagerDialog(self)
 
     def open_help(self):
         """F1 - Yardım dosyasını varsayılan tarayıcıda aç"""
