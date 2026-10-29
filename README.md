@@ -28,7 +28,11 @@ Python ile geliştirilmiş, modern CustomTkinter arayüzlü, kapsamlı bir PDF g
 
   - Vurgulama annotation'larının arkaplan rengi, fare sağ tuş ile açılan menüden değiştirilebiliyor.
 
-
+- 29.10.2026
+  
+ - Metin Düzenleme özellikleri
+ 
+ - Vektör Düzenleme özellikleri  
 
 
 ---
